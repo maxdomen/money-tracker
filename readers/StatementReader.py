@@ -5,14 +5,15 @@ from datetime import datetime, timedelta
 #from decimal import *
 #import accounts
 import xlrd
-import accounts
+from model import accounts
+import model.accounts
 import pyparsing 
 
 import os
 import sys
 from pyparsing import Word, alphas
 #from accounts import *
-from currency import Money
+from model.currency import Money
 
 
 __author__ = 'Max'

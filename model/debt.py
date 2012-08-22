@@ -2,7 +2,7 @@
 from datetime import datetime, timedelta
 #from decimal import Decimal
 import xlrd
-from StatementReader import TxSource
+#from StatementReader import TxSource
 from accounts import Statement, StatementRow, RowType, Account, Tx, Pool
 from aggregatereport import Period
 from currency import usd, rub, Currency, Money

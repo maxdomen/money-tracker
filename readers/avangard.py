@@ -3,8 +3,9 @@ from datetime import datetime, timedelta
 #from decimal import Decimal
 import xlrd
 from StatementReader import TxSource, SimpleSheetReader
-import accounts
-from currency import Money
+from model import accounts
+import model.accounts
+from model.currency import Money
 
 __author__ = 'Max'
 

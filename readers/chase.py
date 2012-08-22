@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 import unicodedata
 import xlrd
 from StatementReader import TxSource
-import accounts
+import model.accounts
 
 __author__ = 'Max'
 

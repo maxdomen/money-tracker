@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 #from StatementReader import TCSBankReader, AvangardReader, BankOfAmericaReader
-from  StatementReader import *
+#from  StatementReader import *
 #import bankofamerica
 #from printstatement import PrintStatementToExcel2
 from currency import *

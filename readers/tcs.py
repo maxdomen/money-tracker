@@ -1,6 +1,6 @@
 # -*- coding: utf8 -*-
 import codecs
-from currency import usd, Currency, Money
+from model.currency import usd, Currency, Money
 
 __author__ = 'Max'
 from datetime import datetime, timedelta
@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 import unicodedata
 import xlrd
 from StatementReader import TxSource
-import accounts
+import model.accounts
 
 
 class TCSBankReader:

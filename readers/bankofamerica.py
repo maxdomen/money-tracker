@@ -3,7 +3,8 @@ from decimal import Decimal
 from datetime import datetime, timedelta
 from decimal import *
 from StatementReader import TxSource
-import accounts
+from model import accounts
+import model.accounts
 
 __author__ = 'Max'
 import csv
