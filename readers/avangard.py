@@ -8,6 +8,7 @@ import model.accounts
 from model.currency import Money
 
 __author__ = 'Max'
+#
 
 class AvangardReader:
     def __init__(self,filename):
