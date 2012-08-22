@@ -3,9 +3,10 @@
 #from  StatementReader import *
 #import bankofamerica
 #from printstatement import PrintStatementToExcel2
+import xlrd
 from currency import *
 
-
+#
 __author__ = 'Max'
 from datetime import datetime
 #from decimal import *

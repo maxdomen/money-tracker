@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 import codecs
+from model import accounts
 from model.currency import usd, Currency, Money
 
 __author__ = 'Max'

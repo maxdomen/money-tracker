@@ -75,32 +75,31 @@ def parsing(basedir,avr,avu,tcs,boa,wallet,safe, sveta, budget):
     BankOfAmericaReader(basedir+"home/2012/boa 2012.csv").parse_to(boa)
 
     AvangardReader(basedir+"home/2012/avr 1.1.2012 - 1.4.2012.xls").parse_private_to(avr)
-    AvangardReader(basedir+"home/2012/avu 1.1.2012 - 1.4.2012.xls").parse_private_to(avu)
-
-    AvangardReader(basedir+"home/2012/avu apr 2012.xls").parse_private_to(avu)
     AvangardReader(basedir+"home/2012/avr apr 2012.xls").parse_private_to(avr)
-
     AvangardReader(basedir+"home/2012/avr may 2012.xls").parse_private_to(avr)
     AvangardReader(basedir+"home/2012/avr june 2012.xls").parse_private_withreserved_to(avr)
-
     AvangardReader(basedir+"home/2012/avr july 2012.xls").parse_private_withreserved_to(avr)
+    AvangardReader(basedir+"home/2012/avr aug 2012.xls").parse_private_withreserved_to(avr)
 
+
+    AvangardReader(basedir+"home/2012/avu 1.1.2012 - 1.4.2012.xls").parse_private_to(avu)
+    AvangardReader(basedir+"home/2012/avu apr 2012.xls").parse_private_to(avu)
     AvangardReader(basedir+"home/2012/avu may 2012.xls").parse_private_to(avu)
     AvangardReader(basedir+"home/2012/avu june 2012.xls").parse_private_withreserved_to(avu)
     AvangardReader(basedir+"home/2012/avu july 2012.xls").parse_private_withreserved_to(avu)
+    AvangardReader(basedir+"home/2012/avu aug 2012.xls").parse_private_withreserved_to(avu)
 
-    #TCSBankReader("Data/home/2012/tcs jan 2012.csv").parse2011_to(tcs)
+
+
+
     TCSBankReader(basedir+"home/2012/tcs jan 2012new.csv").parse2012_to(tcs)
     TCSBankReader(basedir+"home/2012/tcs feb-apr 2012new.csv").parse2012_to(tcs)
-
-
-
-    #TCSBankReader("Data/home/2012/tcs feb 2012.csv").parse2011_to(tcs)
-    #TCSBankReader("Data/home/2012/tcs mar 2012.csv").parse2011_to(tcs)
-    #TCSBankReader("Data/home/2012/tcs apr 2012.csv").parse2011_to(tcs)
     TCSBankReader(basedir+"home/2012/tcs may 2012.csv").parse2012_to(tcs)
-
     TCSBankReader(basedir+"home/2012/tcs june 2012.csv").parse2012_to(tcs)
+    TCSBankReader(basedir+"home/2012/tcs july 2012.csv").parse2012_to(tcs)
+    TCSBankReader(basedir+"home/2012/tcs aug 2012.csv").parse2012_to(tcs)
+
+
     #TCSBankReader("Data/home/2012/tcs june 2012b.csv").parse2011v2_to(tcs)
 
     cashconfig={'first_row':1,'col_acc':1,'col_date':0, 'col_op':2,'col_in':3,'col_out':4,'col_balance':5, 'col_tag1':6,'col_tag2':7}
@@ -118,7 +117,7 @@ def parsing(basedir,avr,avu,tcs,boa,wallet,safe, sveta, budget):
     budget.read(basedir+'home/2012/2012 sveta.xls','Plan')
 
 #FP=None
-def tagging(familypool=None):
+def tagging(basedir,familypool=None):
     print "Tagging"
     #if not familypool:
     #    familypool=FP
@@ -157,8 +156,8 @@ def tagging(familypool=None):
     tagger.handler(tx_to_outer_bank)
 
 
-    tagger.load_declares("data/home/2012/2012 logs and cash.xls","Auto Tags")
-    tagger.load_manual_tags("data/home/2012/2012 logs and cash.xls","Manual Tags")
+    tagger.load_declares(basedir+"home/2012/2012 logs and cash.xls","Auto Tags")
+    tagger.load_manual_tags(basedir+"home/2012/2012 logs and cash.xls","Manual Tags")
 
 
 
@@ -168,7 +167,7 @@ def tagging(familypool=None):
     #cProfile.runctx('tagger.dotagforpool(familypool)', globals(),locals())
 
 
-    TransisitionsLoader(familypool, "data/home/2012/2012 logs and cash.xls","Transitions")
+    TransisitionsLoader(familypool, basedir+"home/2012/2012 logs and cash.xls","Transitions")
 
 
 
@@ -344,7 +343,7 @@ def homeaccounting(basedir):
     familypool.link_account(sveta)
 
     FP=familypool
-    tagging(familypool)
+    tagging(basedir,familypool)
     #cProfile.run('tagging()')
     #cProfile.runctx('tagging(familypool)', globals(),locals())
 

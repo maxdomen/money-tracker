@@ -6,6 +6,7 @@ import xlrd
 from accounts import Statement, StatementRow, RowType, Account, Tx, Pool
 from aggregatereport import Period
 from currency import usd, rub, Currency, Money
+from readers.StatementReader import TxSource
 
 __author__ = 'Max'
 
