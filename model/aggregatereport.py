@@ -3,6 +3,7 @@
 
 from xlwt.Style import XFStyle
 from accounts import *
+from timeline import *
 
 __author__ = 'Max'
 import xlwt
