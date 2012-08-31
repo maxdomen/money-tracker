@@ -5,7 +5,7 @@ from model import debt
 import readers.StatementReader
 from model.dashboard import DashboardDataset, DashboardPublisher, BigPicture, BigPicturePublisher
 import model.debt
-from model.aggregatereport import Layout, Dataset, Publisher, Aggregate, Publisher2
+#from model.aggregatereport import Layout, Dataset, Publisher, Aggregate, Publisher2
 #from debt import Debts
 
 __author__ = 'Max'
@@ -215,19 +215,19 @@ def printdata(statement,dashboarddataset,bigpicture, dataset,datasetmonthly, bud
     excel.set_period(datetime(2012,1,1),datetime.now())
     excel.do_print(statement)
 
-    dataset.layout._finalize()
-    pub=Publisher(dataset, "test.xls", "SheetVert",existing_workbook=excel.wb)
-    pub.vertical()
+    #dataset.layout._finalize()
+    #pub=Publisher(dataset, "test.xls", "SheetVert",existing_workbook=excel.wb)
+    #pub.vertical()
 
 
-    pub2=Publisher(datasetmonthly, "test.xls", "SheetVert2", existing_workbook=pub.wb)
-    pub2.horizontal()
+    #pub2=Publisher(datasetmonthly, "test.xls", "SheetVert2", existing_workbook=pub.wb)
+    #pub2.horizontal()
 
 
 
-    pubAgg1=Publisher2(agg, "test.xls", "Agg1",existing_workbook=excel.wb)
+    #pubAgg1=Publisher2(agg, "test.xls", "Agg1",existing_workbook=excel.wb)
     
-    pub3=Publisher2(debts, "test.xls", "Agg1",existing_workbook=excel.wb,existing_sheet=pubAgg1.ws, after_row=8, sub_report_title="Debts")
+    #pub3=Publisher2(debts, "test.xls", "Agg1",existing_workbook=excel.wb,existing_sheet=pubAgg1.ws, after_row=8, sub_report_title="Debts")
 
 
     observer=PrintStatementToExcel2("test.xls","CM Balance", excel.wb)
@@ -235,7 +235,7 @@ def printdata(statement,dashboarddataset,bigpicture, dataset,datasetmonthly, bud
     observer.do_print(virt_max_cm_statement)
 
 
-    pub2=Publisher2(agg2, "test.xls", "BudgetAgg1",existing_workbook=excel.wb)
+    #pub2=Publisher2(agg2, "test.xls", "BudgetAgg1",existing_workbook=excel.wb)
 
     observer2=PrintStatementToExcel2("test.xls","Personal Debts", excel.wb)
     observer2.set_period(datetime(2012,1,1),datetime.now())
@@ -243,68 +243,13 @@ def printdata(statement,dashboarddataset,bigpicture, dataset,datasetmonthly, bud
 
 
 
-    pub2=Publisher(budgetmonthly, "test.xls", "BudgetVert2", existing_workbook=pub.wb)
-    pub2.horizontal()
+    #pub2=Publisher(budgetmonthly, "test.xls", "BudgetVert2", existing_workbook=pub.wb)
+    #pub2.horizontal()
 
     print "Write to file"
     excel.save()
 
-def createlayout():
-    layout=Layout()
 
-    company=layout.income.addgroup(u"Отношения с компанией")
-    company.addgroup(u"Под отчет", any_tag=[u"Под отчет","Reimbursment"]).collapse()
-    company.addgroup(has_tag=u"Деньги CM")
-    familyin=layout.income.addgroup(u"Семья")
-    layout.familyin=familyin
-    maxsalary=familyin.addgroup("Salary",has_tag=u"Зарплата") #баг
-    familyin.addgroup(has_tag=u"ЗП Светы")
-
-    familyin.addgroup(has_tag=u"возврат")
-    familyin.addgroup(has_tag=u"Случайный доход")
-    #familyin.collapse()
-    layout.income.addgroup(has_tag="debt")
-
-    company=layout.spending.addgroup(u"Отношения с компанией")
-    reimbursment=company.addgroup("Reimbursment", has_tag="Reimbursment")
-    reimbursment.addgroup(has_tag="trip_us_jan12")
-    reimbursment.addgroup(has_tag="trip_gdc")
-    reimbursment.addgroup(has_tag="msc_may20")
-    reimbursment.addgroup(has_tag="msc_may30")
-    reimbursment.collapse()
-    company.addgroup(has_tag=u"Деньги CM")
-
-
-
-    family=layout.spending.addgroup(u"Обеспечение семьи")
-    layout.family=family
-    #family.addgroup(has_tag=u"Сотовый")
-    fam_recur=family.addgroup(has_tag=u"Рекуррентные")
-    fam_recur.collapse()
-    family.addgroup(has_tag=u"food").collapse()
-    family.addgroup(has_tag=u"sveta").collapse()
-
-    misc=family.addgroup(has_tag=u"misc")
-    misc.collapse()
-
-    family.addgroup(has_tag=u"хоз")
-    ent=family.addgroup(u"Развлечения")
-    ent.addgroup(has_tag=u"семейные развлечения")
-    ent.addgroup(has_tag=u"спиртное")
-    ent.addgroup(has_tag=u"пьянка")
-    ent.addgroup(has_tag=u"развлечения")
-    ent.collapse()
-
-
-    family.addgroup(has_tag=u"Медобслуживание")
-    goods=family.addgroup(u"Долговоременные товары",any_tag=["big buy", u"гаджет", u"одежда"]).collapse()
-
-    family.addgroup(has_tag=u"Экстренно").collapse()
-    debts=family.addgroup(u"Долги и переводы", any_tag=["2bank", u"debt", u"interest"])
-
-    family.addgroup(has_tag=u"move").collapse()
-    layout.annually=layout.spending.addgroup(u"Ежегодно", has_tag=u"Ежегодно")
-    return layout
 
 def homeaccounting(basedir):
     loadrates()
@@ -371,44 +316,40 @@ def homeaccounting(basedir):
     bigpicture=BigPicture(statement,budgetstatement)
 
 
-    layout=createlayout()
-    layout.create_automatic_groups(statement)
+    #layout=createlayout()
+    #layout.create_automatic_groups(statement)
 
 
 
 
 
 
-    dataset=Dataset(layout, statement, start=datetime(2012,1,1))
+    #dataset=Dataset(layout, statement, start=datetime(2012,1,1))
+
+
+    #datasetmonthly=Dataset(layout, statement, start=datetime(2012,1,1), chunktype=3)
 
 
 
+    #budgetlayout=createlayout()
+    #budgetlayout.create_automatic_groups(budgetstatement)
+    #budgetmonthly=Dataset(budgetlayout, budgetstatement, start=datetime(2012,1,1), chunktype=3)
 
-    #reimbursment.expand()
-    #fam_recur.expand()
-    datasetmonthly=Dataset(layout, statement, start=datetime(2012,1,1), chunktype=3)
-
-
-    #pub2.save()
-    budgetlayout=createlayout()
-    budgetlayout.create_automatic_groups(budgetstatement)
-    budgetmonthly=Dataset(budgetlayout, budgetstatement, start=datetime(2012,1,1), chunktype=3)
-
-    agg=Aggregate(datasetmonthly)
-    r1=agg.CreateRow(u"Приход", sumgroups=[layout.familyin])
-    r2=agg.CreateRow(u"Расход", sumgroups=[layout.family, layout.annually, layout.spending.untagged, layout.lost])
-    r3=agg.CreateRowCalc(u"Семейная EBITDA", r1,r2)
-    r4=agg.CreateCumulative(u"Cumulative", r3)
-    agg.go()
+    #agg=Aggregate(datasetmonthly)
+    #r1=agg.CreateRow(u"Приход", sumgroups=[layout.familyin])
+    #r2=agg.CreateRow(u"Расход", sumgroups=[layout.family, layout.annually, layout.spending.untagged, layout.lost])
+    #r3=agg.CreateRowCalc(u"Семейная EBITDA", r1,r2)
+    #r4=agg.CreateCumulative(u"Cumulative", r3)
+    #agg.go()
 
 
 
-    agg2=Aggregate(budgetmonthly)
-    r1=agg2.CreateRow(u"Приход", sumgroups=[budgetlayout.income])
-    r2=agg2.CreateRow(u"Расход", sumgroups=[budgetlayout.spending])
-    r3=agg2.CreateRowCalc(u"EBITDA семьи", r1,r2)
-    r4=agg2.CreateCumulative(u"Cumulative", r3)
-    agg2.go()
+    #agg2=Aggregate(budgetmonthly)
+    #r1=agg2.CreateRow(u"Приход", sumgroups=[budgetlayout.income])
+    #r2=agg2.CreateRow(u"Расход", sumgroups=[budgetlayout.spending])
+    #r3=agg2.CreateRowCalc(u"EBITDA семьи", r1,r2)
+    #r4=agg2.CreateCumulative(u"Cumulative", r3)
+    #agg2.go()
 
 
     virt_private_debts_acc = Account('virt_private_debts',rub)
@@ -490,6 +431,11 @@ def homeaccounting(basedir):
 
     debts.calc_total()
 
+    dataset=None
+    datasetmonthly=None
+    budgetmonthly=None
+    agg=None
+    agg2=None
     printdata(statement,dashboarddataset,bigpicture, dataset,datasetmonthly, budgetmonthly, debts,virt_max_cm_statement,agg,agg2,virt_private_debts)
 
 ####

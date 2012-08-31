@@ -4,7 +4,8 @@ from datetime import datetime, timedelta
 import xlrd
 #from StatementReader import TxSource
 from accounts import Statement, StatementRow, RowType, Account, Tx, Pool
-from aggregatereport import Period
+#from aggregatereport import Period
+from common.Classification import Period
 from currency import usd, rub, Currency, Money
 from readers.StatementReader import TxSource
 
@@ -21,9 +22,16 @@ class DebtRow:
 class Debts:
     def __init__(self, start=None, end=None,statement=None):
         self.rows=[]
+
+        if start==None:
+             start=statement.Rows[0].date
+        if end==None:
+             end=statement.Rows[len(statement.Rows)-1].date+timedelta(seconds=1)
+
         self._start=start
         self._end=end
-        self.periods=Period.CreateSet(3,statement,self._start,self._end,10)
+
+        self.periods=Period.CreateSet(Period.Month,self._start,self._end,10)
 
     def add_credit_card_as_account(self, statement, account, mode,qualificator=1):
         debt=DebtRow(account.name, len(self.periods))

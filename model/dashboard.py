@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 #import decimal
 import xlwt
 from accounts import RowType
-from aggregatereport import Period
+from common.Classification import Period
 from currency import Currency, Money
 from debt import BudgetFreq, BudgetBehaviour
 
@@ -35,7 +35,7 @@ class BigPicture:
         self.future=self.moment+timedelta(days=30*12)
         self.future=datetime(self.future.year,self.future.month, self.future.day)-timedelta(days=-1)
 
-        periods=Period.CreateSet(chunktype=3, start=self.past,end=self.future, maxindex=100)
+        periods=Period.CreateSet(chunktype=Period.Month, start=self.past,end=self.future, maxindex=100)
         periodsmap={}
         for p in periods:
             big=BigPicturePeriod()
