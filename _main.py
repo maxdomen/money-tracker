@@ -445,8 +445,13 @@ def classify_statement(basedir,statement,wb, sheetname):
 
     classification=Classification(from_xls=(basedir+"home/2012/2012 logs and cash.xls","Classification"))
 
-    classification.create_auto_classification(statement)
+    #classification.finalize()
 
+    #classification.finalize()
+
+    classification.create_auto_classification(statement)
+    classification.get_category_by_id("company_txs")._collapsed=True
+    classification.finalize()
     monthlydataset=ClassificationDataset(classification,Period.Month, statement)
 
 
@@ -457,7 +462,7 @@ def classify_statement(basedir,statement,wb, sheetname):
     ws.col(0).width=256*40
 
     ws.panes_frozen = True
-    ws.horz_split_pos = 1
+    ws.horz_split_pos = 2
     ws.vert_split_pos = 1
     ws.normal_magn=70
 

@@ -41,6 +41,7 @@ class Category:
         self.childs=[]
         self._collapsed=False
         self._hided=False
+        self._sid=""
         self._index=-1
         self.parent=None
         self._level_index=-1
@@ -87,7 +88,11 @@ class Classification:
         self._untagged=Category(u"Без тегов")
         self._uncategorized.add(self._untagged)
         self._auto_categorized=None
-
+    def get_category_by_id(self,sid):
+        for c in self.cat_array:
+            if c._sid==sid:
+                return c
+        return None
     def create_auto_classification(self,statement):
         self._auto_categorized=Category(u"Автосозданные категории")
         self._root.add(self._auto_categorized)
@@ -144,6 +149,8 @@ class Classification:
                     if command=="-":
                         cat._collapsed=True
 
+                if len(sid)>0:
+                    cat._sid=sid
                 parent.add(cat)
                 prevs[coli+1]=cat
                 break
@@ -193,7 +200,9 @@ class Classification:
         node._level_index=deep
         #self.cat_array.append(node)
 
-        if not hide:
+        if hide:
+            node._index=-1
+        else:
             node._index=self.cat_maxindex
             self.cat_maxindex+=1
 
@@ -353,6 +362,7 @@ class ClassificationPrinter:
     def print_titles(dataset,ws,startrowi):
         rowi=startrowi+1
         for category in dataset.classification.cat_array:
+            print category.title,category._index
             coli=0
             if category._index>=0:
                 rowi=startrowi+category._index+1
