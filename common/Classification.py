@@ -80,8 +80,8 @@ class Classification:
         self._root.add(self._uncategorized)
         self._untagged=Category(u"Без тегов")
         self._uncategorized.add(self._untagged)
-        self._auto_categorized=Category(u"Автосозданная категории")
-        self._root.add(self._auto_categorized)
+        #self._auto_categorized=Category(u"Автосозданная категории")
+        #self._root.add(self._auto_categorized)
 
 
     def _load_from_xls(self,workbook,spreadsheet):
@@ -144,8 +144,8 @@ class Classification:
                     matched=False
 
         if len(matches)>0:
-            if len(matches)>1:
-                print "many matches", len(matches),TagTools.TagsToStr(tags)
+            #if len(matches)>1:
+            #    print "many matches", len(matches),TagTools.TagsToStr(tags)
             return matches[0]
 
         #print "   match None"
@@ -157,11 +157,11 @@ class Classification:
             if len(tags)>0:
                 title=TagTools.TagsToStr(tags)
                 print "auto-create classification", title
-                autocat=Category(title)
-                autocat.tags.append(list(tags))
-                self._auto_categorized.add(autocat)
-                res=autocat
-                self.finalize()
+                #autocat=Category(title)
+                #autocat.tags.append(list(tags))
+                #self._auto_categorized.add(autocat)
+                #res=autocat
+                #self.finalize()
         return res
     def finalize(self):
         self.cat_array=[]
@@ -244,13 +244,15 @@ class Period:
 class ClassificationDataset:
     def __init__(self,classification,period_quant,sourcedata=None, create_empty=None, reversed=False):
 
+        if not isinstance(period_quant,int):
+            raise Exception("bad parameter type. 'int' expected")
         self.periods=None
         classification.finalize()
         self.classification=classification
         if create_empty:
             #period_quant=create_empty[0]
-            time_start=create_empty[1]
-            time_finish=create_empty[2]
+            time_start=create_empty[0]
+            time_finish=create_empty[1]
             self.periods=Period.CreateSet(period_quant,time_start,time_finish,classification.cat_maxindex+10)
 
         if sourcedata:
@@ -300,9 +302,8 @@ class ClassificationDataset:
     def classify_value(self,row_date,value,tags):
         for p in self.periods:
             if row_date>=p._start and row_date<=p._end:
-                #print row_date,p._start
-                self._row(p,value,tags)
-                break
+                g=self._row(p,value,tags)
+                return g
 
     def _row(self,period, value,tagsin):
         group=None
@@ -328,7 +329,7 @@ class ClassificationDataset:
             shouldbelist.append(value)
         #else:
 
-
+        return group
 class ClassificationPrinter:
     @staticmethod
     def print_titles(dataset,ws,startrowi):
