@@ -202,6 +202,13 @@ class XlsReader:
             tx=accounts.Tx(amount_in,time)
             tx.src=srcdef
             acc.income(tx)
+
+            if amount_out>0:
+                print  "in and out in the same record", time,amount_in,amount_out
+                tx.comment="[income from undefined source]"
+                tx=accounts.Tx(amount_out,time)
+                tx.src=srcdef
+                acc.out(tx)
         else:
             if amount_out<=0:
                 return
