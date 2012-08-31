@@ -241,7 +241,7 @@ class XlsReader:
             else:
                 accname=r[accnamecolind].value
                 if len(accname)<1:
-                    raise Exception("Cell {0}:{1} refers to not existent account".format(rowi,accnamecolind))
+                    raise Exception("Cell {0}:{1} refers to not existent account (the cell is empty)".format(rowi,accnamecolind))
                 if not accsobj.has_key(accname):
                     raise Exception("Cell {0}:{1} refers to unknown account '{2}'".format(rowi,accnamecolind,accname))
                 acc=accsobj[accname]
