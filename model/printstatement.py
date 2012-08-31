@@ -50,9 +50,9 @@ class PrintStatementToExcel2:
         self._chunktype=type
 
 
-    def save(self):
+    #def save(self):
 
-        self.wb.save(self.filename)
+    #    self.wb.save(self.filename)
         
     def do_print(self,st):
 

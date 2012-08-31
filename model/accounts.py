@@ -8,7 +8,7 @@ from currency import *
 
 #
 __author__ = 'Max'
-from datetime import datetime
+from datetime import datetime, timedelta
 #from decimal import *
 
 #class Journal:
@@ -291,6 +291,24 @@ class Statement:
     def __init__(self):
           self.Rows = []
           return
+    def get_time_start(self):
+        return self.Rows[0].date
+    def get_time_finish(self):
+        end=self.Rows[len(self.Rows)-1].date+timedelta(seconds=1)
+        return end
+    def get_generator(self):
+        for r in self.Rows:
+
+
+            if r.type!=RowType.Tx:
+                continue
+
+            tx=r.tx
+            tags=r.tags
+            if tx.direction==1:
+                tags.append("__in")
+            res=(r.date,r.amount.as_float(),tags)
+            yield   res
 
 
 class TransisitionsLoader():

@@ -20,6 +20,16 @@ class TagTools:
                 if li.count(a)<1:
                     li.append(a)
 
+    @staticmethod
+    def TagsToStr(tags):
+        smulti=""
+        for tag in tags:
+            if len(smulti)>0:
+                smulti+="+"
+            smulti+=tag
+        return smulti
+
+
 class Category:
     def __init__(self,title, tags_expression=None):
         self.title=title.strip()
@@ -70,7 +80,8 @@ class Classification:
         self._root.add(self._uncategorized)
         self._untagged=Category(u"Без тегов")
         self._uncategorized.add(self._untagged)
-
+        self._auto_categorized=Category(u"Автосозданная категории")
+        self._root.add(self._auto_categorized)
 
 
     def _load_from_xls(self,workbook,spreadsheet):
@@ -116,9 +127,7 @@ class Classification:
 
         if len(tags)<1:
             return  self._untagged
-        #print "try match", tags
-        #if tags[0]==u"субсидии":
-        #    print "субсидии!!"
+
         matches=[]
         for c in self.cat_array:
 
@@ -135,6 +144,8 @@ class Classification:
                     matched=False
 
         if len(matches)>0:
+            if len(matches)>1:
+                print "many matches", len(matches),TagTools.TagsToStr(tags)
             return matches[0]
 
         #print "   match None"
@@ -143,6 +154,14 @@ class Classification:
         res=self._match_tags_to_category(tags)
         if not res:
             res=self._uncategorized
+            if len(tags)>0:
+                title=TagTools.TagsToStr(tags)
+                print "auto-create classification", title
+                autocat=Category(title)
+                autocat.tags.append(list(tags))
+                self._auto_categorized.add(autocat)
+                res=autocat
+                self.finalize()
         return res
     def finalize(self):
         self.cat_array=[]
@@ -223,22 +242,22 @@ class Period:
         return periods
 
 class ClassificationDataset:
-    def __init__(self,classification,sourcedata=None, create_empty=None, reversed=False):
+    def __init__(self,classification,period_quant,sourcedata=None, create_empty=None, reversed=False):
 
         self.periods=None
         classification.finalize()
         self.classification=classification
         if create_empty:
-            period_quant=create_empty[0]
+            #period_quant=create_empty[0]
             time_start=create_empty[1]
             time_finish=create_empty[2]
-            self.periods=Period.CreateSet(period_quant,time_start,time_finish,classification.cat_maxindex)
+            self.periods=Period.CreateSet(period_quant,time_start,time_finish,classification.cat_maxindex+10)
 
         if sourcedata:
             #self._finalize_layout(classification._root,False)
             time_start=sourcedata.get_time_start()
             time_finish=sourcedata.get_time_finish()
-            self.periods=Period.CreateSet(Period.Day,time_start,time_finish,classification.cat_maxindex)
+            self.periods=Period.CreateSet(period_quant,time_start,time_finish,classification.cat_maxindex+10)
             self.process_list(sourcedata)
 
         if reversed and self.periods:
@@ -288,6 +307,8 @@ class ClassificationDataset:
     def _row(self,period, value,tagsin):
         group=None
         #root=self.layout.income if row.tx.direction==1 else self.layout.spending
+        if tagsin==None:
+            tagsin=[]
         tags=list(tagsin)
         group=self.classification.match_tags_to_category(tags)
         if group._hided:
@@ -320,7 +341,7 @@ class ClassificationPrinter:
                 title=category.title
                 #_level_index
                 for i in range(0,category._level_index):
-                    title="  "+ title
+                    title="     "+ title
 
 
                 ws.write(rowi, coli, title)
@@ -338,7 +359,9 @@ class ClassificationPrinter:
         #rowi=startrowi
         coli=2
         self.style_time1 = xlwt.easyxf(num_format_str='D-MMM')
+        self.style_money=xlwt.easyxf(num_format_str='#,##0')
         #startrowi+=1
+
         for p in dataset.periods:
             self.ws.write(startrowi, coli, p._start,self.style_time1)
             for category in dataset.classification.cat_array:
@@ -350,6 +373,6 @@ class ClassificationPrinter:
                 if v>0:
                     rowi=startrowi+category._index+1
                     #print category._index, rowi,coli
-                    self.ws.write(rowi, coli, v)
+                    self.ws.write(rowi, coli, v,self.style_money)
                 #rowi+=1
             coli+=1

@@ -1,5 +1,6 @@
 #! coding: utf-8
 import cProfile
+from common.Classification import Classification, ClassificationDataset, ClassificationPrinter, Period
 from model import debt
 
 import readers.StatementReader
@@ -201,7 +202,7 @@ def tagging(basedir,familypool=None):
     tx=familypool.get_tx_byid("1271200wallet18318.00[1]").set_logical_date(datetime(2012,6,30))
     #tx=familypool.get_tx_byid("1272000wallet10000.00").set_logical_date(datetime(2012,6,30))
 
-def printdata(statement,dashboarddataset,bigpicture, dataset,datasetmonthly, budgetmonthly, debts,virt_max_cm_statement,agg,agg2,virt_private_debts):
+def printdata(basedir,statement,dashboarddataset,bigpicture,virt_max_cm_statement,virt_private_debts):
 
     print "Print statement Txs"
 
@@ -246,8 +247,11 @@ def printdata(statement,dashboarddataset,bigpicture, dataset,datasetmonthly, bud
     #pub2=Publisher(budgetmonthly, "test.xls", "BudgetVert2", existing_workbook=pub.wb)
     #pub2.horizontal()
 
-    print "Write to file"
-    excel.save()
+
+
+
+    return excel.wb
+
 
 
 
@@ -431,13 +435,35 @@ def homeaccounting(basedir):
 
     debts.calc_total()
 
-    dataset=None
-    datasetmonthly=None
-    budgetmonthly=None
-    agg=None
-    agg2=None
-    printdata(statement,dashboarddataset,bigpicture, dataset,datasetmonthly, budgetmonthly, debts,virt_max_cm_statement,agg,agg2,virt_private_debts)
 
+    wb=printdata(basedir,statement,dashboarddataset,bigpicture,virt_max_cm_statement,virt_private_debts)
+    classify_statement(basedir,statement,wb, "Monthly")
+    classify_statement(basedir,budgetstatement,wb, "BudgetMonthly")
+    wb.save("test.xls")
+
+def classify_statement(basedir,statement,wb, sheetname):
+
+    classification=Classification(from_xls=(basedir+"home/2012/2012 logs and cash.xls","Classification"))
+    classification.finalize()
+    for row_date,value,tags in statement.get_generator():
+        classification.match_tags_to_category(tags)
+
+    monthlydataset=ClassificationDataset(classification,Period.Month, statement)
+
+
+
+
+
+    ws = wb.add_sheet(sheetname)
+    ws.col(0).width=256*40
+
+    ws.panes_frozen = True
+    ws.horz_split_pos = 1
+    ws.vert_split_pos = 1
+    ws.normal_magn=70
+
+
+    printer=ClassificationPrinter(monthlydataset, existing_sheet=ws)
 ####
 def corpaccounting():
     loadrates()
