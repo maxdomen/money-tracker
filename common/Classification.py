@@ -47,9 +47,15 @@ class Category:
     def add(self,cat):
         cat.parent=self
         self.childs.append(cat)
+    def _add_tags_row(self, tags):
+        row=[]
+        for t in tags:
+            row.append(t.lower())
+
+        self.tags.append(row)
     def _str_to_tags(self, sexpr):
         res=[]
-        parts=sexpr.split(",")
+        parts=sexpr.lower().split(",")
         for p in parts:
             row=[]
             tags=p.split("+")
@@ -80,8 +86,27 @@ class Classification:
         self._root.add(self._uncategorized)
         self._untagged=Category(u"Без тегов")
         self._uncategorized.add(self._untagged)
-        #self._auto_categorized=Category(u"Автосозданная категории")
-        #self._root.add(self._auto_categorized)
+        self._auto_categorized=None
+
+    def create_auto_classification(self,statement):
+        self._auto_categorized=Category(u"Автосозданные категории")
+        self._root.add(self._auto_categorized)
+
+        self.finalize()
+
+        for row_date,value,tags in statement.get_generator():
+            res=self._match_tags_to_category(tags)
+            if not res:
+                res=self._uncategorized
+                if len(tags)>0:
+                    title=TagTools.TagsToStr(tags)
+                    print "auto-create classification", title
+                    autocat=Category(title)
+                    #autocat.tags.append(list(tags))
+                    autocat._add_tags_row(tags)
+                    self._auto_categorized.add(autocat)
+                    #res=autocat
+                    self.finalize()
 
 
     def _load_from_xls(self,workbook,spreadsheet):
@@ -154,14 +179,7 @@ class Classification:
         res=self._match_tags_to_category(tags)
         if not res:
             res=self._uncategorized
-            if len(tags)>0:
-                title=TagTools.TagsToStr(tags)
-                print "auto-create classification", title
-                #autocat=Category(title)
-                #autocat.tags.append(list(tags))
-                #self._auto_categorized.add(autocat)
-                #res=autocat
-                #self.finalize()
+
         return res
     def finalize(self):
         self.cat_array=[]

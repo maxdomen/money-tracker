@@ -307,7 +307,11 @@ class Statement:
             tags=r.tags
             if tx.direction==1:
                 tags.append("__in")
-            res=(r.date,r.amount.as_float(),tags)
+
+            ltags=[]
+            for t in tags:
+                ltags.append(t.lower())
+            res=(r.date,r.amount.as_float(),ltags)
             yield   res
 
 

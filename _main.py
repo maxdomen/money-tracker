@@ -444,9 +444,8 @@ def homeaccounting(basedir):
 def classify_statement(basedir,statement,wb, sheetname):
 
     classification=Classification(from_xls=(basedir+"home/2012/2012 logs and cash.xls","Classification"))
-    classification.finalize()
-    for row_date,value,tags in statement.get_generator():
-        classification.match_tags_to_category(tags)
+
+    classification.create_auto_classification(statement)
 
     monthlydataset=ClassificationDataset(classification,Period.Month, statement)
 
