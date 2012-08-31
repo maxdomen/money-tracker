@@ -207,6 +207,11 @@ class PrintStatementToExcel2:
                     stags+=t1
                 ws.write(ri,srcinfoi+2, stags)
 
+                if hasattr(row, 'classification'):
+                    ws.write(ri,srcinfoi+3, row.classification)
+
+
+
             ri+=1
 
         #end of period    

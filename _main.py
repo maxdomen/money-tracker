@@ -435,6 +435,13 @@ def homeaccounting(basedir):
 
     debts.calc_total()
 
+    classification=Classification(from_xls=(basedir+"home/2012/2012 logs and cash.xls","Classification"))
+    classification.finalize()
+    for r in statement.Rows:
+        r.classification=""
+        if r.type==RowType.Tx:
+            group=classification.match_tags_to_category(r.tags)
+            r.classification=group.title
 
     wb=printdata(basedir,statement,dashboarddataset,bigpicture,virt_max_cm_statement,virt_private_debts)
     classify_statement(basedir,statement,wb, "Monthly")
