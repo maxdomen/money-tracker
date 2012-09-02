@@ -161,27 +161,46 @@ class Classification:
             return  self._untagged
 
         matches=[]
+        max_combinationprecise=0
         for c in self.cat_array:
 
 
             for tags_combination in c.tags:
                 matched=False
+                combinationprecise=len(tags_combination)
                 for tag in tags_combination:
                     matched=tags.count(tag)>0
                     if not matched:
                         break
+
                 if matched:
+                    #все теги комбинации есть во входном списке
                     #print "   match", c.title
-                    matches.append(c)
+                    matches.append( (c,combinationprecise) )
+                    if combinationprecise>max_combinationprecise:
+                        max_combinationprecise=combinationprecise
                     matched=False
 
         if len(matches)>0:
-            #if len(matches)>1:
-            #    print "many matches", len(matches),TagTools.TagsToStr(tags)
-            return matches[0]
+
+            return self.select_best(matches,tags,max_combinationprecise)
 
         #print "   match None"
         return None
+    def select_best(self,matches,tags,max_combinationprecise):
+        res= matches[0][0]
+        if len(matches)>1:
+            #print "many matches", len(matches),TagTools.TagsToStr(tags), "max_combinationprecise=",max_combinationprecise
+            for m,hc in matches:
+                allcombs=""
+                for tt in m.tags:
+                    allcombs=allcombs+" "+str(tt)
+                #print "    ",m.title, hc,allcombs
+                if hc==max_combinationprecise:
+                    res=m
+                    break
+            #print "    ->", res.title
+        return res
     def match_tags_to_category(self,tags):
         res=self._match_tags_to_category(tags)
         if not res:

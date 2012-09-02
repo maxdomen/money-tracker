@@ -69,17 +69,21 @@ class PrintStatementToExcel2:
         #ws = self.wb.add_sheet('Txs')
 
         ws.col(5).width=256*40
-        ws.col(0).width=256*10
+        ws.col(0).width=256*8
+        ws.col(1).width=256*6
+        ws.col(2).width=256*6
 
+        ws.col(3).width=256*10
+        ws.col(4).width=256*10
         #ws.set_panes_frozen(True)
         ws.panes_frozen = True
         ws.horz_split_pos = 1
         ws.vert_split_pos = 1
-        ws.normal_magn=80
+        ws.normal_magn=70
 
-        for ci in range(6,11):
-            ws.col(ci).width=256*10
-        ws.col(12).width=256*12
+        for ci in range(6,12):
+            ws.col(ci).width=256*12
+        ws.col(13).width=256*14
 
         ri=0
 

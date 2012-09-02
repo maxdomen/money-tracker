@@ -20,6 +20,8 @@ from model.accounts import *
 from model.tags import AutoTagger
 from model.printstatement import PrintStatementToExcel2, BalanseObservation
 from readers.StatementReader import *
+import xlwt
+from  common.Classification import *
 #from debt import *
 import pstats
 
@@ -444,11 +446,71 @@ def homeaccounting(basedir):
             r.classification=group.title
 
     wb=printdata(basedir,statement,dashboarddataset,bigpicture,virt_max_cm_statement,virt_private_debts)
-    classify_statement(basedir,statement,wb, "Monthly")
-    classify_statement(basedir,budgetstatement,wb, "BudgetMonthly")
+    clasfctn=classify_statement(basedir,statement,wb, "Monthly", False)
+    classify_statement_with_details(clasfctn,statement,wb, "TxsByCategory2",True, datetime(2012,8,1),datetime(2012,8,31))
+    #detailedclassifiedstatement
+    classify_statement(basedir,budgetstatement,wb, "BudgetMonthly",True)
     wb.save("test.xls")
 
-def classify_statement(basedir,statement,wb, sheetname):
+def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_company_txs, date_start, date_finish):
+    for r in statement.Rows:
+        if r.type!=RowType.Tx:
+            continue
+
+        if not (r.date>=date_start and r.date<=date_finish):
+            continue
+
+        if r.tx.direction==1:
+            print "d"
+        g=clasfctn.match_tags_to_category(r.normilized_tags)
+
+        if not hasattr(g, 'txs'):
+            g.txs=[]
+        g.txs.append(r)
+
+        #print r.date,r.tx.direction, r.amount, r.description,"->", g.title
+
+    ws = wb.add_sheet(sheetname2)
+    ws.normal_magn=70
+    ws.col(1).width=256*12
+    ws.col(2).width=256*12
+    #печать
+    rowi=0
+    bc=0
+    style_time1 = xlwt.easyxf(num_format_str='D-MMM')
+    style_money=xlwt.easyxf(num_format_str='#,##0.00')
+    for category in clasfctn.cat_array:
+        cattitle=category.title
+        p=category.parent
+        while p:
+            if p.title=="_root":
+                break
+            cattitle=p.title+"/"+cattitle
+            p=p.parent
+        ws.write(rowi, 0, cattitle)
+        rowi+=1
+
+        if not hasattr(category, 'txs'):
+            continue
+        for r in category.txs:
+            print "   ",r.date,r.tx.direction, r.amount, r.description,"->", category.title
+            #ws.write(rowi, bc+0, r.date)
+            ws.write(rowi, bc+0, r.date,style_time1)
+            #ws.write(rowi, bc+1, accname)
+            if r.tx.direction==1:
+                acoli=bc+2
+            else:
+                acoli=bc+1
+            ws.write(rowi, acoli, r.amount.as_float(),style_money)
+            ws.write(rowi, bc+3, r.description)
+            satags=TagTools.TagsToStr(r.tx._tags)
+            if len(satags)<1:
+                satags="<notags>"
+            ws.write(rowi, bc+7,satags )
+
+            rowi+=1
+
+def classify_statement(basedir,statement,wb, sheetname, collapse_company_txs):
 
     classification=Classification(from_xls=(basedir+"home/2012/2012 logs and cash.xls","Classification"))
 
@@ -457,17 +519,14 @@ def classify_statement(basedir,statement,wb, sheetname):
     #classification.finalize()
 
     classification.create_auto_classification(statement)
-    classification.get_category_by_id("company_txs")._collapsed=True
-    classification.finalize()
+    if collapse_company_txs:
+        classification.get_category_by_id("company_txs")._collapsed=True
+        classification.finalize()
+
     monthlydataset=ClassificationDataset(classification,Period.Month, statement)
-
-
-
-
 
     ws = wb.add_sheet(sheetname)
     ws.col(0).width=256*40
-
     ws.panes_frozen = True
     ws.horz_split_pos = 2
     ws.vert_split_pos = 1
@@ -475,6 +534,7 @@ def classify_statement(basedir,statement,wb, sheetname):
 
 
     printer=ClassificationPrinter(monthlydataset, existing_sheet=ws)
+    return classification
 ####
 def corpaccounting():
     loadrates()

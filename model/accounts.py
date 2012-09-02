@@ -305,12 +305,15 @@ class Statement:
 
             tx=r.tx
             tags=r.tags
-            if tx.direction==1:
-                tags.append("__in")
 
             ltags=[]
             for t in tags:
                 ltags.append(t.lower())
+
+            if tx.direction==1:
+                ltags.append("__in")
+
+            r.normilized_tags=ltags
             res=(r.date,r.amount.as_float(),ltags)
             yield   res
 
