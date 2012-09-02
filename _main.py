@@ -474,34 +474,42 @@ def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_
     ws.normal_magn=70
     ws.col(1).width=256*12
     ws.col(2).width=256*12
+    ws.col(7).width=256*12
     #печать
     rowi=0
+
+
+    details_for_cat(ws,clasfctn._root,0)
+
+    #for category in clasfctn.cat_array:
+
+def details_for_cat(ws,category, rowi):
+
     bc=0
     style_time1 = xlwt.easyxf(num_format_str='D-MMM')
     style_money=xlwt.easyxf(num_format_str='#,##0.00')
-    for category in clasfctn.cat_array:
-        cattitle=category.title
-        p=category.parent
-        while p:
+    cattitle=category.title
+    p=category.parent
+    while p:
             if p.title=="_root":
                 break
             cattitle=p.title+"/"+cattitle
             p=p.parent
-        ws.write(rowi, 0, cattitle)
-        rowi+=1
+    ws.write(rowi, 0, cattitle)
+    rowi+=1
 
-        if not hasattr(category, 'txs'):
-            continue
+    subtotal=0
+    if hasattr(category, 'txs'):
         for r in category.txs:
             print "   ",r.date,r.tx.direction, r.amount, r.description,"->", category.title
-            #ws.write(rowi, bc+0, r.date)
             ws.write(rowi, bc+0, r.date,style_time1)
-            #ws.write(rowi, bc+1, accname)
             if r.tx.direction==1:
                 acoli=bc+2
             else:
                 acoli=bc+1
-            ws.write(rowi, acoli, r.amount.as_float(),style_money)
+            v=r.amount.as_float()
+            subtotal+=v*r.tx.direction
+            ws.write(rowi, acoli,v ,style_money)
             ws.write(rowi, bc+3, r.description)
             satags=TagTools.TagsToStr(r.tx._tags)
             if len(satags)<1:
@@ -510,6 +518,16 @@ def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_
 
             rowi+=1
 
+    for c in category.childs:
+        rowi, childtotal=details_for_cat(ws,c, rowi)
+        rowi+=1
+        subtotal+=childtotal
+
+    ws.write(rowi, 3, u"Total in {0}".format(category.title))
+    ws.write(rowi, 7,subtotal ,style_money)
+
+    rowi+=1
+    return rowi,subtotal
 def classify_statement(basedir,statement,wb, sheetname, collapse_company_txs):
 
     classification=Classification(from_xls=(basedir+"home/2012/2012 logs and cash.xls","Classification"))
