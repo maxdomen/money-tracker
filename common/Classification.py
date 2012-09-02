@@ -414,7 +414,9 @@ class ClassificationPrinter:
 
     def __init__(self, dataset,existing_sheet,startrowi=1):
         self.ws=existing_sheet
-        self.hst = xlwt.easyxf('pattern:   pattern solid, fore_colour ice_blue ;')
+        self.hst = xlwt.easyxf('pattern:   pattern solid, fore_colour ice_blue ;',num_format_str='#,##0')
+        self.hsti = xlwt.easyxf('pattern:   pattern solid, fore_colour ice_blue ;font: italic on;',num_format_str='#,##0')
+
 
         #print startrowi
         ClassificationPrinter.print_titles(dataset,existing_sheet,startrowi)
@@ -432,16 +434,26 @@ class ClassificationPrinter:
                 #coli=0
                 v=p._cells[category._index]
                 rowi=startrowi+category._index+1
-                if v>0:
+                subtotals=0
+                if category._highlighted:
+                    subtotals=self.calcsubtotals(category,p)
 
-                    #print category._index, rowi,coli
-                    if category._highlighted:
-                        self.ws.write(rowi, coli, v,self.hst)
-                    else:
-                        self.ws.write(rowi, coli, v,self.style_money)
+                    style=self.hst
+                    if v==0:
+                        style= self.hsti
+                    v=v+subtotals
+                    self.ws.write(rowi, coli, v,style)
+
                 else:
-                    if category._highlighted:
-                        self.ws.write(rowi, coli, "",self.hst)
+                    if v>0:
+                        self.ws.write(rowi, coli, v,self.style_money)
 
                 #rowi+=1
             coli+=1
+    def calcsubtotals(self,category,p):
+        res=0
+        for c in category.childs:
+            v=p._cells[c._index]
+            res=res+v
+            res=res+self.calcsubtotals(c,p)
+        return res
