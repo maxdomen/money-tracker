@@ -45,6 +45,7 @@ class Category:
         self._index=-1
         self.parent=None
         self._level_index=-1
+        self._highlighted=False
     def add(self,cat):
         cat.parent=self
         self.childs.append(cat)
@@ -88,6 +89,7 @@ class Classification:
         self._untagged=Category(u"Без тегов")
         self._uncategorized.add(self._untagged)
         self._auto_categorized=None
+
     def get_category_by_id(self,sid):
         for c in self.cat_array:
             if c._sid==sid:
@@ -105,7 +107,7 @@ class Classification:
                 res=self._uncategorized
                 if len(tags)>0:
                     title=TagTools.TagsToStr(tags)
-                    print "auto-create classification", title
+                    #print "auto-create classification", title
                     autocat=Category(title)
                     #autocat.tags.append(list(tags))
                     autocat._add_tags_row(tags)
@@ -149,6 +151,8 @@ class Classification:
                     if command=="-":
                         cat._collapsed=True
 
+                    if command=="=":
+                        cat._highlighted=True
                 if len(sid)>0:
                     cat._sid=sid
                 parent.add(cat)
@@ -380,8 +384,14 @@ class ClassificationPrinter:
     @staticmethod
     def print_titles(dataset,ws,startrowi):
         rowi=startrowi+1
+        hst = xlwt.easyxf('pattern:   pattern solid, fore_colour ice_blue ;')
+        #hst = xlwt.easyxf('pattern: pattern solid;')
+
+
+        #hst.pattern.pattern_fore_colour = 0x1F
+
         for category in dataset.classification.cat_array:
-            print category.title,category._index
+            #print category.title,category._index
             coli=0
             if category._index>=0:
                 rowi=startrowi+category._index+1
@@ -392,7 +402,10 @@ class ClassificationPrinter:
                     title="     "+ title
 
 
-                ws.write(rowi, coli, title)
+                if category._highlighted:
+                    ws.write(rowi, coli, title,hst)
+                else:
+                    ws.write(rowi, coli, title)
             else:
                 pass
                 #print "hided category", category.title
@@ -401,6 +414,7 @@ class ClassificationPrinter:
 
     def __init__(self, dataset,existing_sheet,startrowi=1):
         self.ws=existing_sheet
+        self.hst = xlwt.easyxf('pattern:   pattern solid, fore_colour ice_blue ;')
 
         #print startrowi
         ClassificationPrinter.print_titles(dataset,existing_sheet,startrowi)
@@ -417,10 +431,17 @@ class ClassificationPrinter:
                     continue
                 #coli=0
                 v=p._cells[category._index]
-
+                rowi=startrowi+category._index+1
                 if v>0:
-                    rowi=startrowi+category._index+1
+
                     #print category._index, rowi,coli
-                    self.ws.write(rowi, coli, v,self.style_money)
+                    if category._highlighted:
+                        self.ws.write(rowi, coli, v,self.hst)
+                    else:
+                        self.ws.write(rowi, coli, v,self.style_money)
+                else:
+                    if category._highlighted:
+                        self.ws.write(rowi, coli, "",self.hst)
+
                 #rowi+=1
             coli+=1

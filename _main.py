@@ -460,8 +460,8 @@ def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_
         if not (r.date>=date_start and r.date<=date_finish):
             continue
 
-        if r.tx.direction==1:
-            print "d"
+        #if r.tx.direction==1:
+        #    print "d"
         g=clasfctn.match_tags_to_category(r.normilized_tags)
 
         if not hasattr(g, 'txs'):
@@ -501,7 +501,7 @@ def details_for_cat(ws,category, rowi):
     subtotal=0
     if hasattr(category, 'txs'):
         for r in category.txs:
-            print "   ",r.date,r.tx.direction, r.amount, r.description,"->", category.title
+            #print "   ",r.date,r.tx.direction, r.amount, r.description,"->", category.title
             ws.write(rowi, bc+0, r.date,style_time1)
             if r.tx.direction==1:
                 acoli=bc+2
