@@ -34,9 +34,10 @@ class Category:
     def __init__(self,title, tags_expression=None):
         self.title=title.strip()
         self.tags=[]
+        self.stoplist=[]
 
         if tags_expression:
-            self.tags=self._str_to_tags(tags_expression)
+            self.tags, self.stoplist=self._str_to_tags(tags_expression)
 
         self.childs=[]
         self._collapsed=False
@@ -57,19 +58,31 @@ class Category:
         self.tags.append(row)
     def _str_to_tags(self, sexpr):
         res=[]
+        stoplist=[]
         parts=sexpr.lower().split(",")
         for p in parts:
             row=[]
+
+
             tags=p.split("+")
             for t in tags:
-                st=t
+                #minuspos=t.find("-")
+                #if minuspos>=0:
+                #    print "minus:", p
+
+                st=t.strip()
+                if st[0]=="-":
+                    st=st[1:len(st)]
+                    #print "minus::", st
+                    stoplist.append(st)
+                    continue
                 if st[0]=="@":
                     st=st[1:len(st)-1]
-                row.append(st.strip())
+                row.append(st)
             res.append(row)
 
         #print res
-        return res
+        return res,stoplist
 class Classification:
     def __init__(self,from_xls=None):
 
@@ -178,12 +191,24 @@ class Classification:
                         break
 
                 if matched:
-                    #все теги комбинации есть во входном списке
-                    #print "   match", c.title
-                    matches.append( (c,combinationprecise) )
-                    if combinationprecise>max_combinationprecise:
-                        max_combinationprecise=combinationprecise
-                    matched=False
+                    #проверяем на stoplist
+                    for st in tags:
+                        #if st=="restaurant":
+                        #    print "restaurant"
+
+                        #print u"check '{0}'".format(st),len(c.stoplist),str(c.stoplist)
+                        stopmatched=c.stoplist.count(st)>0
+                        if stopmatched:
+                            print "stopmatched", st
+                            break
+
+                    if not stopmatched:
+                        #все теги комбинации есть во входном списке
+                        #print "   match", c.title
+                        matches.append( (c,combinationprecise) )
+                        if combinationprecise>max_combinationprecise:
+                            max_combinationprecise=combinationprecise
+                        matched=False
 
         if len(matches)>0:
 
