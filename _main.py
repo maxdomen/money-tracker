@@ -320,43 +320,8 @@ def homeaccounting(basedir):
 
 
 
-    bigpicture=BigPicture(statement,budgetstatement)
 
 
-    #layout=createlayout()
-    #layout.create_automatic_groups(statement)
-
-
-
-
-
-
-    #dataset=Dataset(layout, statement, start=datetime(2012,1,1))
-
-
-    #datasetmonthly=Dataset(layout, statement, start=datetime(2012,1,1), chunktype=3)
-
-
-
-    #budgetlayout=createlayout()
-    #budgetlayout.create_automatic_groups(budgetstatement)
-    #budgetmonthly=Dataset(budgetlayout, budgetstatement, start=datetime(2012,1,1), chunktype=3)
-
-    #agg=Aggregate(datasetmonthly)
-    #r1=agg.CreateRow(u"Приход", sumgroups=[layout.familyin])
-    #r2=agg.CreateRow(u"Расход", sumgroups=[layout.family, layout.annually, layout.spending.untagged, layout.lost])
-    #r3=agg.CreateRowCalc(u"Семейная EBITDA", r1,r2)
-    #r4=agg.CreateCumulative(u"Cumulative", r3)
-    #agg.go()
-
-
-
-    #agg2=Aggregate(budgetmonthly)
-    #r1=agg2.CreateRow(u"Приход", sumgroups=[budgetlayout.income])
-    #r2=agg2.CreateRow(u"Расход", sumgroups=[budgetlayout.spending])
-    #r3=agg2.CreateRowCalc(u"EBITDA семьи", r1,r2)
-    #r4=agg2.CreateCumulative(u"Cumulative", r3)
-    #agg2.go()
 
 
     virt_private_debts_acc = Account('virt_private_debts',rub)
@@ -443,6 +408,10 @@ def homeaccounting(basedir):
 
     clasfctn=load_and_organize_classfication(basedir,statement, False)
 
+    bigpicture=BigPicture(statement,budgetstatement)
+    new_big_picture(clasfctn,statement)
+
+
     #записываем в statement присловоенную категорию, чтобы показать в отчете
     for r in statement.Rows:
         r.classification=""
@@ -464,7 +433,8 @@ def homeaccounting(basedir):
     clasfctn=load_and_organize_classfication(basedir,statement, True)
     classify_statement(clasfctn,budgetstatement,wb, "BudgetMonthly")
     wb.save("test.xls")
-
+def new_big_picture(clasfctn,statement):
+    monthlydataset=ClassificationDataset(clasfctn,Period.Month, statement)
 def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_company_txs, date_start, date_finish):
     for r in statement.Rows:
         if r.type!=RowType.Tx:
