@@ -451,8 +451,8 @@ def homeaccounting(basedir):
             if r.tx.direction==1:
                 ts.append("__in")
             group=clasfctn.match_tags_to_category(ts)
-            if group==clasfctn._uncategorized:
-                print "clasfctn"
+            #if group==clasfctn._uncategorized:
+            #    print "clasfctn"
             r.classification=group.title
 
     wb=printdata(basedir,statement,dashboarddataset,bigpicture,virt_max_cm_statement,virt_private_debts)

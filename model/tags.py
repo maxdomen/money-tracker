@@ -46,8 +46,8 @@ class AutoTagger:
 
         dict2={}
         for td in self.decls:
-            if td.firstword=="lufthansa":
-                print "lufthansa"
+            #if td.firstword=="lufthansa":
+            #    print "lufthansa"
             #first=td.pattern.split(' ')[0]
             prev=dict2.get(td.firstword)
             if prev:
@@ -64,8 +64,8 @@ class AutoTagger:
             str2=tx.comment
             str=str2.lower().strip()
 
-            if str.find("globus")>=0:
-                print "globus"
+            #if str.find("globus")>=0:
+            #    print "globus"
 
             words=str.split(' ')
             for w in words:
@@ -164,8 +164,8 @@ class AutoTagger:
         for rowi in range(1,sheet.nrows):
             r=sheet.row(rowi)
             firststword=r[0].value.strip().lower()
-            if firststword=="firststword":
-                print "firststword"
+            #if firststword=="firststword":
+            #    print "firststword"
 
             str=r[1].value.lower()
             t1=r[2].value
