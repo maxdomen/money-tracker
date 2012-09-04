@@ -440,6 +440,8 @@ def homeaccounting(basedir):
 
     classification=Classification(from_xls=(basedir+"home/2012/2012 logs and cash.xls","Classification"))
     classification.finalize()
+
+    #записываем в statement присловоенную категорию, чтобы показать в отчете
     for r in statement.Rows:
         r.classification=""
         if r.type==RowType.Tx:
@@ -447,6 +449,8 @@ def homeaccounting(basedir):
             r.classification=group.title
 
     wb=printdata(basedir,statement,dashboarddataset,bigpicture,virt_max_cm_statement,virt_private_debts)
+
+
     clasfctn=classify_statement(basedir,statement,wb, "Monthly", False)
     classify_statement_with_details(clasfctn,statement,wb, "TxsByCategory2",True, datetime(2012,8,1),datetime(2012,8,31))
     #detailedclassifiedstatement
@@ -461,15 +465,12 @@ def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_
         if not (r.date>=date_start and r.date<=date_finish):
             continue
 
-        #if r.tx.direction==1:
-        #    print "d"
         g=clasfctn.match_tags_to_category(r.normilized_tags)
 
         if not hasattr(g, 'txs'):
             g.txs=[]
         g.txs.append(r)
 
-        #print r.date,r.tx.direction, r.amount, r.description,"->", g.title
 
     ws = wb.add_sheet(sheetname2)
     ws.normal_magn=70
@@ -533,14 +534,20 @@ def classify_statement(basedir,statement,wb, sheetname, collapse_company_txs):
 
     classification=Classification(from_xls=(basedir+"home/2012/2012 logs and cash.xls","Classification"))
 
-    #classification.finalize()
 
-    #classification.finalize()
-
+    #создаем категории для тегов, которые не попали созданные вручную категории
     classification.create_auto_classification(statement)
     if collapse_company_txs:
         classification.get_category_by_id("company_txs")._collapsed=True
         classification.finalize()
+
+    #я хочу видеть неклассифицированные расходы в расходах семьи.
+    family=classification.get_category_by_id("family_out")
+    classification._uncategorized.moveto(family)
+    classification._auto_categorized.moveto(family)
+
+
+    classification.finalize()
 
     monthlydataset=ClassificationDataset(classification,Period.Month, statement)
 

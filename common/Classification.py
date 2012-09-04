@@ -50,6 +50,9 @@ class Category:
     def add(self,cat):
         cat.parent=self
         self.childs.append(cat)
+    def moveto(self, catto):
+        self.parent.childs.remove(self)
+        catto.childs.append(self)
     def _add_tags_row(self, tags):
         row=[]
         for t in tags:
@@ -98,6 +101,7 @@ class Classification:
 
 
         self._uncategorized=Category(u"Без категории")
+        #self._uncategorized._sid="_uncategorized"
         self._root.add(self._uncategorized)
         self._untagged=Category(u"Без тегов")
         self._uncategorized.add(self._untagged)
