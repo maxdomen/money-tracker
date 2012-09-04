@@ -8,9 +8,14 @@ class Tag:
           self.name=name
 
 class tagdef:
-    def __init__(self, str, tag):
-        self.pattern=str
-        self.tag=tag
+    def __init__(self, firstword,str, tags):
+        self.firstword=firstword
+        self.fullstring=str
+
+        if len(self.firstword)<1:
+            self.firstword=str.split(' ')[0]
+        self.tags=list(tags)
+        #self.tags.exntend(tags)
 
 class AutoTagger:
 
@@ -19,8 +24,8 @@ class AutoTagger:
         self.handlers=[]
         self.manual_tags_input=[]
         self.manual_tags_remove=[]
-    def declare(self, str, tag):
-        self.decls.append( tagdef(str,tag) )
+    def declare2(self, firststword,str, tags):
+        self.decls.append( tagdef(firststword,str,tags) )
     def declares(self, arr):
         self.decls.extend(arr)
     def handler(self, func):
@@ -33,8 +38,15 @@ class AutoTagger:
 
         dict2={}
         for td in self.decls:
-            first=td.pattern.split(' ')[0]
-            dict2[first]=td
+            #first=td.pattern.split(' ')[0]
+            prev=dict2.get(td.firstword)
+            if prev:
+                if not hasattr(prev,'collisions'):
+                    prev.collisions=[]
+                #print "add collision", td.firstword, td.fullstring
+                prev.collisions.append(td)
+            else:
+                dict2[td.firstword]=td
             #dict2.put(first,tag)
             #self.rel[first]=
 
@@ -44,12 +56,25 @@ class AutoTagger:
             words=str.split(' ')
             for w in words:
                 key=w
-                subw=w.split(',')
-                if len(subw)>0:
-                    key=subw[0]
+                key=w.split(',')[0]
+                #subw=w.split(',')[0]
+                #if len(subw)>0:
+                #    key=subw[0]
                 ist=dict2.get(key)
                 if ist:
-                    tx.add_tag(ist.tag)
+                    if hasattr(ist,'collisions'):
+                        #print "collision here",str,"key:", ist.firstword
+                        for collision in ist.collisions:
+
+                            if len(collision.fullstring)>0:
+                                #print "   test", collision.fullstring
+                                if str.find(collision.fullstring)>=0:
+
+                                    ist=collision
+                                    break
+                        #print "   best match", ist.fullstring
+                    for t in ist.tags:
+                        tx.add_tag(t)
 
 
         map(self._dotag,acc.Txs)
@@ -124,10 +149,14 @@ class AutoTagger:
 
         for rowi in range(1,sheet.nrows):
             r=sheet.row(rowi)
-            str=r[0].value.lower()
-            t1=r[1].value
-            t2=r[2].value
-            t3=r[3].value
-            if t1!="": self.declare(str,t1)
-            if t2!="": self.declare(str,t2)
-            if t3!="": self.declare(str,t3)
+            firststword=r[0].value.lower()
+            str=r[1].value.lower()
+            t1=r[2].value
+            t2=r[3].value
+            t3=r[4].value
+            tags=[]
+
+            if t1!="": tags.append(t1)
+            if t2!="": tags.append(t2)
+            if t3!="": tags.append(t3)
+            self.declare2(firststword,str,tags)

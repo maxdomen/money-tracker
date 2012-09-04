@@ -83,7 +83,7 @@ def parsing(basedir,avr,avu,tcs,boa,wallet,safe, sveta, budget):
     AvangardReader(basedir+"home/2012/avr june 2012.xls").parse_private_withreserved_to(avr)
     AvangardReader(basedir+"home/2012/avr july 2012.xls").parse_private_withreserved_to(avr)
     AvangardReader(basedir+"home/2012/avr aug 2012.xls").parse_private_withreserved_to(avr)
-
+    AvangardReader(basedir+"home/2012/avr sep 2012.xls").parse_private_withreserved_to(avr)
 
     AvangardReader(basedir+"home/2012/avu 1.1.2012 - 1.4.2012.xls").parse_private_to(avu)
     AvangardReader(basedir+"home/2012/avu apr 2012.xls").parse_private_to(avu)
@@ -91,6 +91,7 @@ def parsing(basedir,avr,avu,tcs,boa,wallet,safe, sveta, budget):
     AvangardReader(basedir+"home/2012/avu june 2012.xls").parse_private_withreserved_to(avu)
     AvangardReader(basedir+"home/2012/avu july 2012.xls").parse_private_withreserved_to(avu)
     AvangardReader(basedir+"home/2012/avu aug 2012.xls").parse_private_withreserved_to(avu)
+    AvangardReader(basedir+"home/2012/avu sep 2012.xls").parse_private_withreserved_to(avu)
 
 
 
@@ -101,7 +102,7 @@ def parsing(basedir,avr,avu,tcs,boa,wallet,safe, sveta, budget):
     TCSBankReader(basedir+"home/2012/tcs june 2012.csv").parse2012_to(tcs)
     TCSBankReader(basedir+"home/2012/tcs july 2012.csv").parse2012_to(tcs)
     TCSBankReader(basedir+"home/2012/tcs aug 2012.csv").parse2012_to(tcs)
-
+    TCSBankReader(basedir+"home/2012/tcs sep 2012.csv").parse2012_to(tcs)
 
     #TCSBankReader("Data/home/2012/tcs june 2012b.csv").parse2011v2_to(tcs)
 

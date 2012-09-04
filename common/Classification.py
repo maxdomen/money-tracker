@@ -199,7 +199,7 @@ class Classification:
                         #print u"check '{0}'".format(st),len(c.stoplist),str(c.stoplist)
                         stopmatched=c.stoplist.count(st)>0
                         if stopmatched:
-                            print "stopmatched", st
+                            #print "stopmatched", st
                             break
 
                     if not stopmatched:

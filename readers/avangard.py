@@ -211,7 +211,12 @@ class AvangardReader:
         #баланс в конце
         #это кредитная карта или нет?
         ostatok_out_r=sheet.row(1)
-        siscredit=sheet.row(1)[30].value
+        columdind=30
+        if len(ostatok_out_r)<30:
+            columdind=24
+
+
+        siscredit=sheet.row(1)[columdind].value
         is_credit=False
         #if len(siscredit)>0:
         if isinstance(siscredit,float):
@@ -222,15 +227,15 @@ class AvangardReader:
         headrow2=sheet.row(8)
         headrow3=sheet.row(9)
         if is_credit:
-            number=headrow[30].value+headrow2[30].value
+            number=headrow[columdind].value+headrow2[columdind].value
         else:
-            number=headrow3[30].value
+            number=headrow3[columdind].value
 
         if isinstance(number,float):
             self.make_leftover(acc,book,sheet,number,report_date_finish)
 
         #баланс в начале
-        number=sheet.row(table1_s-2)[31].value
+        number=sheet.row(table1_s-2)[columdind+1].value
         if isinstance(number,float):
             self.make_leftover(acc,book,sheet,number,report_date_start)
 
