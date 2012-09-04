@@ -10,11 +10,19 @@ class Tag:
 class tagdef:
     def __init__(self, firstword,str, tags):
         self.firstword=firstword
-        self.fullstring=str
+        self.fullstring=str.strip()
 
         if len(self.firstword)<1:
-            self.firstword=str.split(' ')[0]
+            self.firstword=self.fullstring.split(' ')[0]
         self.tags=list(tags)
+
+
+        if len(self.firstword)<1:
+            raise Exception("auto tag first word not defined for '{0}'".format(str))
+
+        if len(self.tags)<1:
+            raise Exception("auto tag no tags defined for '{0}'".format(str))
+
         #self.tags.exntend(tags)
 
 class AutoTagger:
@@ -38,6 +46,8 @@ class AutoTagger:
 
         dict2={}
         for td in self.decls:
+            if td.firstword=="lufthansa":
+                print "lufthansa"
             #first=td.pattern.split(' ')[0]
             prev=dict2.get(td.firstword)
             if prev:
@@ -51,8 +61,12 @@ class AutoTagger:
             #self.rel[first]=
 
         for tx in acc.Txs:
-            str2=tx.dest+tx.comment
-            str=str2.lower()
+            str2=tx.comment
+            str=str2.lower().strip()
+
+            if str.find("globus")>=0:
+                print "globus"
+
             words=str.split(' ')
             for w in words:
                 key=w
@@ -149,7 +163,10 @@ class AutoTagger:
 
         for rowi in range(1,sheet.nrows):
             r=sheet.row(rowi)
-            firststword=r[0].value.lower()
+            firststword=r[0].value.strip().lower()
+            if firststword=="firststword":
+                print "firststword"
+
             str=r[1].value.lower()
             t1=r[2].value
             t2=r[3].value

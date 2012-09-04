@@ -96,13 +96,13 @@ class TCSBankReader:
         income=False
         if desc.find(u"Пополнение")>=0 or desc.find(u"Операция возврата")>=0:
             income=True
-            tx.dest="[owner]"
+            #tx.dest="[owner]"
 
         if desc.find(u"Отказано")>=0 or desc.find(u"Отмена")>=0:
             return
 
         if desc.find(u"Проценты по кредиту")>=0 or desc.find(u"Комиссия за выдачу наличных")>=0 or desc.find(u"Плата за предоставление услуги")>=0:
-            tx.dest="[bank]"
+            #tx.dest="[bank]"
             tx.comment=desc
 
         t=u"Оплата в"
@@ -114,9 +114,9 @@ class TCSBankReader:
                 t=u"Операция без присутствия карты"
                 i=desc.find(t)
         if i>=0:
-            tx.dest=desc[i+len(t):len(desc)]
-            tx.comment=""
-
+            tx.comment=desc[i+len(t):len(desc)]
+            #tx.comment=""
+        tx.comment=tx.comment.strip()
 
 
 

@@ -27,13 +27,15 @@ class AvangardReader:
 
         tx.recordSource=srcdef
         tx.comment=op
-        tx.dest=merchant
+        if len(merchant)>0:
+            tx.comment=merchant+" "+op
+        #tx.dest=merchant
         tx.src=srcdef
 
-        if op.find(u"Погашение процентов")>=0:
-            tx.dest="[bank]"
-        if op.find(u"Комиссия за")>=0:
-            tx.dest="[bank]"
+        #if op.find(u"Погашение процентов")>=0:
+        #    tx.dest="[bank]"
+        #if op.find(u"Комиссия за")>=0:
+        #    tx.dest="[bank]"
 
         if len(orig_cur)>0:
             curmap={'RUR':accounts.rub,'USD':accounts.usd,'EUR':accounts.eur,'GBR':accounts.gbr,'GBP':accounts.gbr,'CAD':accounts.cad}

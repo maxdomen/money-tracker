@@ -37,7 +37,7 @@ class Tx:
         self.similar=0
 
         self.src = ''
-        self.dest = ''
+        #self.dest = ''
 
         self.comment = ''
 
@@ -69,7 +69,7 @@ class Tx:
         if not isinstance(tag, unicode):
             tag=unicode(tag)
         if self._tags.count(tag)<1:
-            self._tags.append(tag)
+            self._tags.append(tag.lower())
             self._tags.sort()
 
     def remove_tag(self,tag):
@@ -132,7 +132,7 @@ class Tx:
         if self.original_amount!=None:
             if self.original_currency!=cur:
                 origamount="({0})".format(Currency.verbose(self.original_currency, self.original_amount))
-        str = u"{0}{1} {2}".format(origamount,self.dest,self.comment)
+        str = u"{0} {1}".format(origamount,self.comment)
         return str
 
 class LeftOver:

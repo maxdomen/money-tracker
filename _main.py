@@ -438,23 +438,31 @@ def homeaccounting(basedir):
 
     debts.calc_total()
 
-    classification=Classification(from_xls=(basedir+"home/2012/2012 logs and cash.xls","Classification"))
-    classification.finalize()
+    #classification=Classification(from_xls=(basedir+"home/2012/2012 logs and cash.xls","Classification"))
+    #classification.finalize()
+
+    clasfctn=load_and_organize_classfication(basedir,statement, False)
 
     #записываем в statement присловоенную категорию, чтобы показать в отчете
     for r in statement.Rows:
         r.classification=""
         if r.type==RowType.Tx:
-            group=classification.match_tags_to_category(r.tags)
+            ts=list(r.tags)
+            if r.tx.direction==1:
+                ts.append("__in")
+            group=clasfctn.match_tags_to_category(ts)
+            if group==clasfctn._uncategorized:
+                print "clasfctn"
             r.classification=group.title
 
     wb=printdata(basedir,statement,dashboarddataset,bigpicture,virt_max_cm_statement,virt_private_debts)
 
+    classify_statement(clasfctn,statement,wb, "Monthly")
 
-    clasfctn=classify_statement(basedir,statement,wb, "Monthly", False)
     classify_statement_with_details(clasfctn,statement,wb, "TxsByCategory2",True, datetime(2012,8,1),datetime(2012,8,31))
     #detailedclassifiedstatement
-    classify_statement(basedir,budgetstatement,wb, "BudgetMonthly",True)
+    clasfctn=load_and_organize_classfication(basedir,statement, True)
+    classify_statement(clasfctn,budgetstatement,wb, "BudgetMonthly")
     wb.save("test.xls")
 
 def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_company_txs, date_start, date_finish):
@@ -530,16 +538,15 @@ def details_for_cat(ws,category, rowi):
 
     rowi+=1
     return rowi,subtotal
-def classify_statement(basedir,statement,wb, sheetname, collapse_company_txs):
-
+def load_and_organize_classfication(basedir,statement, collapse_company_txs):
     classification=Classification(from_xls=(basedir+"home/2012/2012 logs and cash.xls","Classification"))
 
 
     #создаем категории для тегов, которые не попали созданные вручную категории
     classification.create_auto_classification(statement)
     if collapse_company_txs:
-        classification.get_category_by_id("company_txs")._collapsed=True
-        classification.finalize()
+            classification.get_category_by_id("company_txs")._collapsed=True
+            classification.finalize()
 
     #я хочу видеть неклассифицированные расходы в расходах семьи.
     family=classification.get_category_by_id("family_out")
@@ -548,6 +555,10 @@ def classify_statement(basedir,statement,wb, sheetname, collapse_company_txs):
 
 
     classification.finalize()
+    return classification
+def classify_statement(classification,statement,wb, sheetname):
+
+
 
     monthlydataset=ClassificationDataset(classification,Period.Month, statement)
 
