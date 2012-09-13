@@ -118,11 +118,11 @@ class Budget:
         self.account=Account('budgetacc',rub)
     def Add(self, row):
         self.rows.append(row)
-    def make_statement(self, currency=usd):
+    def make_statement(self, currency=usd, forNyears=1):
         start=datetime.now()
         y=start.year
         self._start=datetime(y,1,1)
-        end=datetime(y,12,31, hour=23, minute=59)
+        #end=datetime(y+forNyears,12,31, hour=23, minute=59)
 
         #res=Statement()
         #res.Accounts=[]
@@ -130,8 +130,9 @@ class Budget:
 
         for budget in self.rows:
             if budget.period== BudgetFreq.Annually:
-                dt=datetime(self._start.year,budget.exactdate.month,budget.exactdate.day )
-                self.createline(budget, dt)
+                for year_repeater in range(0,forNyears):
+                    dt=datetime(self._start.year+year_repeater,budget.exactdate.month,budget.exactdate.day )
+                    self.createline(budget, dt)
 
 
 
@@ -139,16 +140,17 @@ class Budget:
                 self.createline(budget, budget.exactdate)
 
             if budget.period== BudgetFreq.Monthly:
+                for year_repeater in range(0,forNyears):
+                    day=1
+                    if budget.day!=0:
+                        day=budget.day
+                    for mo in range(1,13):
+                        date=datetime(self._start.year+year_repeater, mo,day)
+                        self.createline(budget, date)
 
-                day=1
-                if budget.day!=0:
-                    day=budget.day
-                for mo in range(1,13):
-                    date=datetime(self._start.year, mo,day)
-                    self.createline(budget, date)
             if budget.period==BudgetFreq.Daily:
                 cur=self._start
-                for day in range(1,365):
+                for day in range(1,365*forNyears):
                     self.createline(budget, cur)
                     cur+=timedelta(days=1)
 
@@ -162,7 +164,7 @@ class Budget:
 
                 cur+=timedelta(days=(di-ti))
 
-                for we in range(1,365/7):
+                for we in range(1,(365*forNyears)/7):
                     #date=datetime(self._start.year, mo,day)
                     self.createline(budget, cur)
                     cur+=timedelta(days=7)

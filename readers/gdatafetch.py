@@ -1,3 +1,5 @@
+import email
+
 __author__ = 'Max'
   #!/usr/bin/env python
 import atom
@@ -5,6 +7,7 @@ import gdata.docs.data
 import gdata.docs.client
 import gdata.docs.service
 import gdata.spreadsheet.service
+import gdfetch_secret
 
 default_source   = 'domain-spreadhseetdownloader-0.01'
 default_spreadsheetid='spreadsheet:0Ao993IR9m-38dDdjN3pGNFViQlotQXY3TkRVV2c1MUE'
@@ -61,9 +64,9 @@ def loginnangetentry(resid):
     client.ssl = True
 
     client.ClientLogin(
-                          default_email,
-                          default_password,
-                          default_source,
+                        gdfetch_secret.default_email,
+                        gdfetch_secret.default_password,
+                        default_source,
                          )
 
     if len(resid)<1:
@@ -79,7 +82,7 @@ def download_item(resid,filename):
 
     client, entry =loginnangetentry(resid)
 
-    client.DownloadResource(entry,filename,extra_params={'gid': 0, 'exportFormat': 'xls'})
+    client.DownloadResource(entry,filename,extra_params={'gid': 0, 'exportFormat': 'xlsx'})
 
 def upload_item(resid,filename):
 
@@ -138,5 +141,7 @@ def findgdoc():
 #    findgdoc()
 
 
-download_item('spreadsheet:0Ao993IR9m-38dE9Yc1ZKSVR0R084enl0elpKRHJlSmc','data/home/2012/2012 sveta.xls')
+#download_item('spreadsheet:0Ao993IR9m-38dE9Yc1ZKSVR0R084enl0elpKRHJlSmc','data/home/2012/2012 sveta.xls')
 #upload_item('spreadsheet:0Ao993IR9m-38dDdjN3pGNFViQlotQXY3TkRVV2c1MUE',"c:/5b.xls")
+
+download_item('spreadsheet:0Ao993IR9m-38dE9Yc1ZKSVR0R084enl0elpKRHJlSmc','c:/2012 sveta.xlsx')

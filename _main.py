@@ -4,7 +4,7 @@ from common.Classification import Classification, ClassificationDataset, Classif
 from model import debt
 
 import readers.StatementReader
-from model.dashboard import DashboardDataset, DashboardPublisher, BigPicture, BigPicturePublisher
+from model.dashboard import DashboardDataset, DashboardPublisher
 import model.debt
 #from model.aggregatereport import Layout, Dataset, Publisher, Aggregate, Publisher2
 #from debt import Debts
@@ -70,7 +70,7 @@ def svetaaccounting(basedir,acc):
     #tcs = Account('scash',rub)
     #avr = Account('balt',rub)
     cashconfig={'first_row':1,'col_acc':1,'col_date':0, 'col_op':4,'col_in':2,'col_out':3,'col_balance':-1, 'col_tag1':5,'col_tag2':6}
-    XlsReader(basedir+'home/2012/2012 sveta.xls','Records',cashconfig).parse_to([acc])
+    XlsReader(basedir+'home/2012/2012 sveta.xlsx','Records',cashconfig).parse_to([acc])
 
 
 def parsing(basedir,avr,avu,tcs,boa,wallet,safe, sveta, budget):
@@ -118,7 +118,7 @@ def parsing(basedir,avr,avu,tcs,boa,wallet,safe, sveta, budget):
     XlsLeftoversJournalReader(basedir+'home/2012/2012 logs and cash.xls','Account Log',cashconfig).parse_to(accstoread)
 
     budget.read(basedir+'home/2012/2012 logs and cash.xls','Budget')
-    budget.read(basedir+'home/2012/2012 sveta.xls','Plan')
+    budget.read(basedir+'home/2012/2012 sveta.xlsx','Plan')
 
 #FP=None
 def tagging(basedir,familypool=None):
@@ -205,7 +205,7 @@ def tagging(basedir,familypool=None):
     tx=familypool.get_tx_byid("1271200wallet18318.00[1]").set_logical_date(datetime(2012,6,30))
     #tx=familypool.get_tx_byid("1272000wallet10000.00").set_logical_date(datetime(2012,6,30))
 
-def printdata(basedir,statement,dashboarddataset,bigpicture,virt_max_cm_statement,virt_private_debts):
+def printdata(basedir,statement,dashboarddataset,virt_max_cm_statement,virt_private_debts):
 
     print "Print statement Txs"
 
@@ -213,7 +213,7 @@ def printdata(basedir,statement,dashboarddataset,bigpicture,virt_max_cm_statemen
 
 
     dashboardpublisher=DashboardPublisher(dashboarddataset,"test.xls","Dashboard")
-    BigPicturePublisher(bigpicture,"test.xls","BigPicture",existing_workbook=dashboardpublisher.wb)
+    #BigPicturePublisher(bigpicture,"test.xls","BigPicture",existing_workbook=dashboardpublisher.wb)
 
     excel=PrintStatementToExcel2("test.xls","Txs",existing_workbook=dashboardpublisher.wb)
     excel.set_period(datetime(2012,1,1),datetime.now())
@@ -310,7 +310,7 @@ def homeaccounting(basedir):
 
 
 
-    budgetstatement=budget.make_statement(rub)
+    budgetstatement=budget.make_statement(rub,forNyears=2)
 
 
     #cProfile.runctx('budgetstatement=budget.make_statement(rub)', globals(),locals())
@@ -408,8 +408,8 @@ def homeaccounting(basedir):
 
     clasfctn=load_and_organize_classfication(basedir,statement, False)
 
-    bigpicture=BigPicture(statement,budgetstatement)
-    new_big_picture(clasfctn,statement)
+    #bigpicture=BigPicture(statement,budgetstatement)
+
 
 
     #записываем в statement присловоенную категорию, чтобы показать в отчете
@@ -424,17 +424,83 @@ def homeaccounting(basedir):
             #    print "clasfctn"
             r.classification=group.title
 
-    wb=printdata(basedir,statement,dashboarddataset,bigpicture,virt_max_cm_statement,virt_private_debts)
-
+    wb=printdata(basedir,statement,dashboarddataset,virt_max_cm_statement,virt_private_debts)
+    new_big_picture(wb,clasfctn,statement,budgetstatement)
     classify_statement(clasfctn,statement,wb, "Monthly")
 
-    classify_statement_with_details(clasfctn,statement,wb, "TxsByCategory2",True, datetime(2012,8,1),datetime(2012,8,31))
+    classify_statement_with_details(clasfctn,statement,wb, "TxsByCategory2",True, datetime(2012,9,1),datetime(2012,9,30))
     #detailedclassifiedstatement
     clasfctn=load_and_organize_classfication(basedir,statement, True)
     classify_statement(clasfctn,budgetstatement,wb, "BudgetMonthly")
     wb.save("test.xls")
-def new_big_picture(clasfctn,statement):
+
+def big_pict_period(ws,coli,p,clasfctn,monthlydataset,cummulative):
+    style_time1 = xlwt.easyxf(num_format_str='D-MMM')
+    style_money=xlwt.easyxf(num_format_str='#,##0')
+
+    style_money_red=xlwt.easyxf('font: color-index red',num_format_str='#,##0')
+    style_money_green=xlwt.easyxf('font: color-index green',num_format_str='#,##0')
+
+    ws.write(1, coli, p._start,style_time1)
+
+    category=clasfctn.get_category_by_id("family_in")
+    income=monthlydataset.calcsubtotals(category,p)
+    ws.write(2, coli,income,style_money)
+
+    category=clasfctn.get_category_by_id("family_out")
+    losses=monthlydataset.calcsubtotals(category,p)
+    ws.write(3, coli,losses,style_money)
+
+    ebitda=income-losses
+    ws.write(4, coli,ebitda,style_money)
+
+    cummulative+=ebitda
+    if cummulative>0:
+        ws.write(5, coli,cummulative,style_money_green)
+    else:
+        ws.write(5, coli,cummulative,style_money_red)
+
+    return cummulative
+
+def new_big_picture(wb,clasfctn,statement,budgetstatement):
     monthlydataset=ClassificationDataset(clasfctn,Period.Month, statement)
+    budgetmonthlydataset=ClassificationDataset(clasfctn,Period.Month, budgetstatement)
+
+
+    startrowi=0
+    coli=1
+    ws = wb.add_sheet("Big Picture")
+    ws.normal_magn=70
+    ws.write(2, 0, "family_in")
+    ws.write(3, 0, "family_out")
+    ws.write(4, 0, "EBIDTA")
+    ws.write(5, 0, "cashflow")
+    #startrowi+=1
+    cummulative=0
+    dtnow=datetime.now()
+    for p in monthlydataset.periods:
+
+        if  not (p._end<dtnow):
+            break
+            #ws.write(0, coli, "Plan")
+        cummulative=big_pict_period(ws,coli,p,clasfctn,monthlydataset,cummulative)
+
+
+        coli+=1
+
+    #coli=1
+    for p in budgetmonthlydataset.periods:
+        if  p._end<dtnow:
+            #ws.write(10, coli, "not Plan")
+            continue
+        else:
+            ws.write(0, coli, "Plan Y"+str(p._end.year-2000))
+
+        cummulative=big_pict_period(ws,coli,p,clasfctn,budgetmonthlydataset,cummulative)
+
+        coli+=1
+
+
 def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_company_txs, date_start, date_finish):
     for r in statement.Rows:
         if r.type!=RowType.Tx:

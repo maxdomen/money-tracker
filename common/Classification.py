@@ -409,6 +409,13 @@ class ClassificationDataset:
         #else:
 
         return group
+    def calcsubtotals(self,category,p):
+        res=0
+        for c in category.childs:
+            v=p._cells[c._index]
+            res=res+v
+            res=res+self.calcsubtotals(c,p)
+        return res
 class ClassificationPrinter:
     @staticmethod
     def print_titles(dataset,ws,startrowi):
@@ -465,7 +472,7 @@ class ClassificationPrinter:
                 rowi=startrowi+category._index+1
                 subtotals=0
                 if category._highlighted:
-                    subtotals=self.calcsubtotals(category,p)
+                    subtotals=dataset.calcsubtotals(category,p)
 
                     style=self.hst
                     if v==0:
@@ -479,10 +486,3 @@ class ClassificationPrinter:
 
                 #rowi+=1
             coli+=1
-    def calcsubtotals(self,category,p):
-        res=0
-        for c in category.childs:
-            v=p._cells[c._index]
-            res=res+v
-            res=res+self.calcsubtotals(c,p)
-        return res
