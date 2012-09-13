@@ -1,6 +1,7 @@
 #! coding: utf-8
 import cProfile
 from common.Classification import Classification, ClassificationDataset, ClassificationPrinter, Period
+from common.Table import Table, Style, DestinationXls
 from model import debt
 
 import readers.StatementReader
@@ -434,31 +435,24 @@ def homeaccounting(basedir):
     classify_statement(clasfctn,budgetstatement,wb, "BudgetMonthly")
     wb.save("test.xls")
 
-def big_pict_period(ws,coli,p,clasfctn,monthlydataset,cummulative):
-    style_time1 = xlwt.easyxf(num_format_str='D-MMM')
-    style_money=xlwt.easyxf(num_format_str='#,##0')
+def big_pict_period(table,coli,p,clasfctn,monthlydataset,cummulative):
 
-    style_money_red=xlwt.easyxf('font: color-index red',num_format_str='#,##0')
-    style_money_green=xlwt.easyxf('font: color-index green',num_format_str='#,##0')
-
-    ws.write(1, coli, p._start,style_time1)
+    table[1,coli]=p._start,Style.Month
 
     category=clasfctn.get_category_by_id("family_in")
     income=monthlydataset.calcsubtotals(category,p)
-    ws.write(2, coli,income,style_money)
-
+    table[2,coli]=income
     category=clasfctn.get_category_by_id("family_out")
     losses=monthlydataset.calcsubtotals(category,p)
-    ws.write(3, coli,losses,style_money)
-
+    table[3,coli]=losses
     ebitda=income-losses
-    ws.write(4, coli,ebitda,style_money)
+    table[4,coli]=ebitda
 
     cummulative+=ebitda
     if cummulative>0:
-        ws.write(5, coli,cummulative,style_money_green)
+        table[5,coli]=cummulative, Style.Money+Style.Green
     else:
-        ws.write(5, coli,cummulative,style_money_red)
+        table[5,coli]=cummulative, Style.Money+Style.Red
 
     return cummulative
 
@@ -466,40 +460,31 @@ def new_big_picture(wb,clasfctn,statement,budgetstatement):
     monthlydataset=ClassificationDataset(clasfctn,Period.Month, statement)
     budgetmonthlydataset=ClassificationDataset(clasfctn,Period.Month, budgetstatement)
 
-
-    startrowi=0
+    table=Table("Big Picture")
+    table.write_cells_vert(2,0,["family_in","family_out","EBIDTA","cashflow"])
+    table[1,2]="test"
     coli=1
-    ws = wb.add_sheet("Big Picture")
-    ws.normal_magn=70
-    ws.write(2, 0, "family_in")
-    ws.write(3, 0, "family_out")
-    ws.write(4, 0, "EBIDTA")
-    ws.write(5, 0, "cashflow")
-    #startrowi+=1
     cummulative=0
     dtnow=datetime.now()
     for p in monthlydataset.periods:
 
         if  not (p._end<dtnow):
             break
-            #ws.write(0, coli, "Plan")
-        cummulative=big_pict_period(ws,coli,p,clasfctn,monthlydataset,cummulative)
+        cummulative=big_pict_period(table,coli,p,clasfctn,monthlydataset,cummulative)
 
 
         coli+=1
 
-    #coli=1
     for p in budgetmonthlydataset.periods:
         if  p._end<dtnow:
-            #ws.write(10, coli, "not Plan")
             continue
         else:
-            ws.write(0, coli, "Plan Y"+str(p._end.year-2000))
+            table[0,coli]="Plan Y"+str(p._end.year-2000)
 
-        cummulative=big_pict_period(ws,coli,p,clasfctn,budgetmonthlydataset,cummulative)
+        cummulative=big_pict_period(table,coli,p,clasfctn,budgetmonthlydataset,cummulative)
 
         coli+=1
-
+    DestinationXls(table,wb)
 
 def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_company_txs, date_start, date_finish):
     for r in statement.Rows:
@@ -521,13 +506,13 @@ def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_
     ws.col(1).width=256*12
     ws.col(2).width=256*12
     ws.col(7).width=256*12
-    #печать
+
     rowi=0
 
 
     details_for_cat(ws,clasfctn._root,0)
 
-    #for category in clasfctn.cat_array:
+
 
 def details_for_cat(ws,category, rowi):
 
