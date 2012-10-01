@@ -1,3 +1,4 @@
+# -*- coding: utf8 -*-
 import unicodedata
 
 __author__ = 'Max'
@@ -63,6 +64,7 @@ class AutoTagger:
         for tx in acc.Txs:
             str2=tx.comment
             str=str2.lower().strip()
+            tx._comment_lowerstrip=str
 
             #if str.find("globus")>=0:
             #    print "globus"
@@ -95,14 +97,35 @@ class AutoTagger:
 
 
         for txid, tag in self.manual_tags_input:
-            tx=acc.txsdictionary.get(txid)
+            tx=None
+
+            if txid[0:2]=="--":
+                txid=txid[2:len(txid)]
+                #print "  search by comment", txid
+                tx=self._searchbycomment(txid,acc.Txs)
+                #if tx:
+                #    print "   found", tx.comment
+            else:
+                tx=acc.txsdictionary.get(txid)
+
             if tx:
                 tx.add_tag(tag)
+
         for txid, tag in self.manual_tags_remove:
+            tx=None
             tx=acc.txsdictionary.get(txid)
             if tx:
                 tx.remove_tag(tag)
-
+    def _searchbycomment(self,comment,txss):
+        for tx in txss:
+            #if tx._comment_lowerstrip.find("sport")>=0:
+            #    print "SPORT1"
+            #    if comment.find("sport")>=0:
+            #        print "SPORT2", comment,tx._comment_lowerstrip
+            #print "   check",tx._comment_lowerstrip
+            if tx._comment_lowerstrip==comment:
+                return tx
+        return None
     def _dotag2(self, tx):
         pass
     def _dotag(self, tx):
@@ -138,6 +161,13 @@ class AutoTagger:
                 txid=unicodedata.normalize('NFKD', unicode_txid).encode('ascii','ignore')
             else:
                 txid=unicode_txid
+
+            if len(txid) and  not txid[1:4].isdigit():
+                #вместо id транзакции дано описание транзакции
+                txid="--"+unicode_txid.lower().strip()
+                #print "",txid
+
+
             tag_add1=r[2].value
             tag_add2=""
             tag_remove=""

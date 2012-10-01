@@ -261,6 +261,9 @@ class AvangardReader:
                     more1=self.scan_all_title(sheet.row(rowi+1))
                     more2=self.scan_all_title(sheet.row(rowi+2))
                     current_caption=more2+more1+current_caption
+                    #current_caption=more2+more1
+                    #if current_caption.find("SPORT")>=0:
+                    #    print "SPORT3"
 
          if current_caption==u"Получение наличных в банкомате":
                     more1=self.scan_all_title(sheet.row(rowi+1))

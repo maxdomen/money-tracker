@@ -10,15 +10,33 @@ class TagTools:
     @staticmethod
     def ConvertStringOfTagsToList(li,str):
         if len(str)>0:
-            tsets=str.split(",")
-            for s in tsets:
-                a=s.strip().lower()
-                hashpos=a.find("#")
-                if hashpos>=0:
-                    a=a[hashpos+1:len(a)]
+            str=str.lower()
+            if str.find("#")>=0:
+                str=str.replace("#",",")
+            if str.find(" ")>=0:
+                str=str.replace(" ",",")
 
-                if li.count(a)<1:
-                    li.append(a)
+            if str.find(",")>=0:
+                TagTools._delimited(str,li, ",")
+            else:
+                TagTools._process_single(str,li)
+
+    @staticmethod
+    def _delimited(str,li, delimiter):
+        tsets=str.split(delimiter)
+        for s in tsets:
+            TagTools._process_single(s,li)
+
+    @staticmethod
+    def _process_single(s,li):
+        a=s.strip()
+        hashpos=a.find("#")
+        if hashpos>=0:
+            a=a[hashpos+1:len(a)]
+
+        if len(a)>0:
+            if li.count(a)<1:
+                li.append(a)
 
     @staticmethod
     def TagsToStr(tags):
@@ -27,6 +45,10 @@ class TagTools:
             if len(smulti)>0:
                 smulti+="+"
             smulti+=tag
+
+
+        if len(smulti)<1:
+            smulti="<notags>"
         return smulti
 
 
@@ -112,26 +134,31 @@ class Classification:
             if c._sid==sid:
                 return c
         return None
-    def create_auto_classification(self,statement):
-        self._auto_categorized=Category(u"Автосозданные категории")
-        self._root.add(self._auto_categorized)
-
+    def create_auto_classification_begin(self):
+        if not self._auto_categorized:
+            self._auto_categorized=Category(u"Автосозданные категории")
+            self._root.add(self._auto_categorized)
         self.finalize()
 
-        for row_date,value,tags in statement.get_generator():
-            res=self._match_tags_to_category(tags)
-            if not res:
-                res=self._uncategorized
-                if len(tags)>0:
-                    title=TagTools.TagsToStr(tags)
-                    #print "auto-create classification", title
-                    autocat=Category(title)
-                    #autocat.tags.append(list(tags))
-                    autocat._add_tags_row(tags)
-                    self._auto_categorized.add(autocat)
-                    #res=autocat
-                    self.finalize()
 
+    def create_auto_classification_item(self, tags):
+        res=self._match_tags_to_category(tags)
+        if not res:
+            res=self._uncategorized
+            if len(tags)>0:
+                title=TagTools.TagsToStr(tags)
+                #print "auto-create classification", title
+                autocat=Category(title)
+                #autocat.tags.append(list(tags))
+                autocat._add_tags_row(tags)
+                self._auto_categorized.add(autocat)
+                #res=autocat
+                self.finalize()
+
+    def create_auto_classification(self,statement):
+        self.create_auto_classification_begin()
+        for row_date,value,tags in statement.get_generator():
+            self.create_auto_classification_item(tags)
 
     def _load_from_xls(self,workbook,spreadsheet):
         sheet=workbook.sheet_by_name(spreadsheet)
@@ -332,13 +359,13 @@ class ClassificationDataset:
             #period_quant=create_empty[0]
             time_start=create_empty[0]
             time_finish=create_empty[1]
-            self.periods=Period.CreateSet(period_quant,time_start,time_finish,classification.cat_maxindex+10)
+            self.periods=Period.CreateSet(period_quant,time_start,time_finish,classification.cat_maxindex+30)
 
         if sourcedata:
             #self._finalize_layout(classification._root,False)
             time_start=sourcedata.get_time_start()
             time_finish=sourcedata.get_time_finish()
-            self.periods=Period.CreateSet(period_quant,time_start,time_finish,classification.cat_maxindex+10)
+            self.periods=Period.CreateSet(period_quant,time_start,time_finish,classification.cat_maxindex+30)
             self.process_list(sourcedata)
 
         if reversed and self.periods:
@@ -463,6 +490,8 @@ class ClassificationPrinter:
         #startrowi+=1
 
         for p in dataset.periods:
+            if coli>255:
+                break
             self.ws.write(startrowi, coli, p._start,self.style_time1)
             for category in dataset.classification.cat_array:
                 if  category._hided:
