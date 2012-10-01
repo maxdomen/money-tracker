@@ -433,7 +433,7 @@ def homeaccounting(basedir):
 
     classify_statement(clasfctn,statement,wb, "Monthly")
     relationshipwithcompany(statement,wb)
-    classify_statement_with_details(clasfctn,statement,wb, "TxsByCategory2",True, datetime(2012,9,1),datetime(2012,9,30))
+    classify_statement_with_details(clasfctn,statement,wb, "TxsByCategory2",True, datetime(2012,9,1),datetime(2012,9,30,23,59,59))
     #detailedclassifiedstatement
     clasfctn=load_and_organize_classfication(basedir,statement, True)
     classify_statement(clasfctn,budgetstatement,wb, "BudgetMonthly")
@@ -443,13 +443,29 @@ def homeaccounting(basedir):
 
     wb.save("test.xls")
 def relationshipwithcompany(statement,wb):
+
+
+
+    checkpoints=[]
+
+    checkpoints.append([datetime(2012,2,22),-30454.64,False])
+    checkpoints.append([datetime(2012,3,21),5407.42,False])
+    checkpoints.append([datetime(2012,5,5),228423.96,False])
+    checkpoints.append([datetime(2012,5,5),228423.96,False])
+    checkpoints.append([datetime(2012,6,8),85318.81,False])
+    checkpoints.append([datetime(2012,7,9, 17,0,0),67205.08,False])
+    checkpoints.append([datetime(2012,7,21, 16,0,0),233207.07,False])
+    checkpoints.append([datetime(2018,10,1),222878, False])
+
     table=Table("CM and Max")
     table[0,0]=u"Отношения с компанией"
     rowi=0
     rbase=3
     mydebt=0
 
-    table[rbase-1,1]="Мой долг компании"
+    table[rbase-1,1]=u"Мой долг компании"
+    table[rbase-1,8]=u"Дала мне компания"
+    table[rbase-1,7]=u"Я потратил на нужды компании или отдал долг"
     for row in statement.Rows:
         if row.type!=RowType.Tx:
             continue
@@ -461,6 +477,17 @@ def relationshipwithcompany(statement,wb):
             relation=check_classification(row.classification,"company_txs")
         if not relation:
             continue
+
+
+
+        for cp in checkpoints:
+            if row.date>=cp[0] and cp[2]==False:
+
+                rowi+=1
+                mydebt=cp[1]
+                print_checkpoint(table,rbase+rowi,cp)
+                rowi+=1
+                break
 
         table[rbase+rowi,0]=row.date, Style.Day
         table[rbase+rowi,2]=row.classification.title
@@ -475,10 +502,23 @@ def relationshipwithcompany(statement,wb):
         table[rbase+rowi,1]=mydebt, Style.Money
         table[rbase+rowi,coli]=v, Style.Money
 
-        #table[rbase+rowi,15]=TagTools.TagsToStr(row.tags)
+        table[rbase+rowi,15]=TagTools.TagsToStr(row.tags)
         rowi+=1
 
+    for cp in checkpoints:
+             if cp[2]==False:
+                 rowi+=1
+                 mydebt=cp[1]
+                 print_checkpoint(table,rbase+rowi,cp)
+                 rowi+=1
+                 break
+
     DestinationXls(table,wb)
+def print_checkpoint(table,rowi,cp):
+    cp[2]=True
+    table[rowi,0]=cp[0], Style.Day
+    table[rowi,2]="Checkpoint"
+    table[rowi,1]=cp[1], Style.Money+Style.Red
 def check_classification(group, sid):
     if group._sid==sid:
         return True
@@ -551,6 +591,7 @@ def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_
             continue
 
         if not (r.date>=date_start and r.date<=date_finish):
+            #print r.description, r.date, date_finish
             continue
 
         g=clasfctn.match_tags_to_category(r.normilized_tags)
