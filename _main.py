@@ -206,7 +206,7 @@ def tagging(basedir,familypool=None):
     tx=familypool.get_tx_byid("1271200wallet18318.00[1]").set_logical_date(datetime(2012,6,30))
     #tx=familypool.get_tx_byid("1272000wallet10000.00").set_logical_date(datetime(2012,6,30))
 
-def printdata(basedir,statement,dashboarddataset,virt_max_cm_statement,virt_private_debts):
+def printdata(basedir,statement,dashboarddataset,virt_private_debts):
 
     print "Print statement Txs"
 
@@ -235,9 +235,9 @@ def printdata(basedir,statement,dashboarddataset,virt_max_cm_statement,virt_priv
     #pub3=Publisher2(debts, "test.xls", "Agg1",existing_workbook=excel.wb,existing_sheet=pubAgg1.ws, after_row=8, sub_report_title="Debts")
 
 
-    observer=PrintStatementToExcel2("test.xls","CM Balance", excel.wb)
-    observer.set_period(datetime(2012,1,1),datetime.now())
-    observer.do_print(virt_max_cm_statement)
+    #observer=PrintStatementToExcel2("test.xls","CM Balance", excel.wb)
+    #observer.set_period(datetime(2012,1,1),datetime.now())
+    #observer.do_print(virt_max_cm_statement)
 
 
     #pub2=Publisher2(agg2, "test.xls", "BudgetAgg1",existing_workbook=excel.wb)
@@ -377,10 +377,10 @@ def homeaccounting(basedir):
     #virt_max_cm.leftover(LeftOver(datetime(2012,6,12),67000.81))
 
 
-    virt_max_cm_statement=familypool.make_statement(rub,virt_max_cm,
-                                                    filter_debit=[u"Reimbursment",u"Деньги CM"],
-                                                    filter_credit=[u"Reimbursment",u"Под отчет",u"Деньги CM"],
-                                                    skip_transitions=True)
+    #virt_max_cm_statement=familypool.make_statement(rub,virt_max_cm,
+    #                                                filter_debit=[u"Reimbursment",u"Деньги CM"],
+    #                                                filter_credit=[u"Reimbursment",u"Под отчет",u"Деньги CM"],
+    #                                                skip_transitions=True)
 
 
 
@@ -398,7 +398,7 @@ def homeaccounting(basedir):
     debts=debt.Debts(start=datetime(2012,1,1),statement=statement)
     debts.add_credit_card_as_account(statement,tcs,mode=1)
     debts.add_credit_card_as_account(statement,avu,mode=1)
-    debts.add_credit_card_as_account(virt_max_cm_statement,virt_max_cm, mode=2, qualificator=-1)
+    #debts.add_credit_card_as_account(virt_max_cm_statement,virt_max_cm, mode=2, qualificator=-1)
     debts.add_credit_card_as_account(virt_private_debts,virt_private_debts_acc, mode=2, qualificator=-1)
         
 
@@ -406,6 +406,9 @@ def homeaccounting(basedir):
 
     #classification=Classification(from_xls=(basedir+"home/2012/2012 logs and cash.xls","Classification"))
     #classification.finalize()
+
+
+
 
     clasfctn=load_and_organize_classfication(basedir,statement, False)
 
@@ -415,7 +418,7 @@ def homeaccounting(basedir):
 
     #записываем в statement присловоенную категорию, чтобы показать в отчете
     for r in statement.Rows:
-        r.classification=""
+        r.classification=None
         if r.type==RowType.Tx:
             ts=list(r.tags)
             if r.tx.direction==1:
@@ -423,17 +426,68 @@ def homeaccounting(basedir):
             group=clasfctn.match_tags_to_category(ts)
             #if group==clasfctn._uncategorized:
             #    print "clasfctn"
-            r.classification=group.title
+            r.classification=group#.title
 
-    wb=printdata(basedir,statement,dashboarddataset,virt_max_cm_statement,virt_private_debts)
+    wb=printdata(basedir,statement,dashboarddataset,virt_private_debts)
     new_big_picture(wb,clasfctn,statement,budgetstatement)
-    classify_statement(clasfctn,statement,wb, "Monthly")
 
+    classify_statement(clasfctn,statement,wb, "Monthly")
+    relationshipwithcompany(statement,wb)
     classify_statement_with_details(clasfctn,statement,wb, "TxsByCategory2",True, datetime(2012,9,1),datetime(2012,9,30))
     #detailedclassifiedstatement
     clasfctn=load_and_organize_classfication(basedir,statement, True)
     classify_statement(clasfctn,budgetstatement,wb, "BudgetMonthly")
+
+
+
+
     wb.save("test.xls")
+def relationshipwithcompany(statement,wb):
+    table=Table("CM and Max")
+    table[0,0]=u"Отношения с компанией"
+    rowi=0
+    rbase=3
+    mydebt=0
+
+    table[rbase-1,1]="Мой долг компании"
+    for row in statement.Rows:
+        if row.type!=RowType.Tx:
+            continue
+
+        relation=False
+        print row.classification.title
+        relation=check_classification(row.classification,"company_txs_in")
+        if not relation:
+            relation=check_classification(row.classification,"company_txs")
+        if not relation:
+            continue
+
+        table[rbase+rowi,0]=row.date, Style.Day
+        table[rbase+rowi,2]=row.classification.title
+        table[rbase+rowi,4]=row.description
+        v=row.amount.as_float()
+        if row.tx.direction==1:
+            mydebt+=v
+            coli=8
+        else:
+            mydebt-=v
+            coli=7
+        table[rbase+rowi,1]=mydebt, Style.Money
+        table[rbase+rowi,coli]=v, Style.Money
+
+        #table[rbase+rowi,15]=TagTools.TagsToStr(row.tags)
+        rowi+=1
+
+    DestinationXls(table,wb)
+def check_classification(group, sid):
+    if group._sid==sid:
+        return True
+
+    #for c in group.childs:
+    if group.parent:
+        if check_classification(group.parent, sid):
+            return True
+    return False
 
 def big_pict_period(table,coli,p,clasfctn,monthlydataset,cummulative):
 
@@ -446,7 +500,12 @@ def big_pict_period(table,coli,p,clasfctn,monthlydataset,cummulative):
     losses=monthlydataset.calcsubtotals(category,p)
     table[3,coli]=losses
     ebitda=income-losses
-    table[4,coli]=ebitda
+    #table[4,coli]=ebitda
+
+    if ebitda>0:
+         table[4,coli]=ebitda, Style.Money+Style.Green
+    else:
+         table[4,coli]=ebitda, Style.Money+Style.Red
 
     cummulative+=ebitda
     if cummulative>0:
@@ -593,6 +652,9 @@ def classify_statement(classification,statement,wb, sheetname):
 
     printer=ClassificationPrinter(monthlydataset, existing_sheet=ws)
     return classification
+
+
+
 ####
 def corpaccounting():
     loadrates()

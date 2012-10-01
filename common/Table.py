@@ -10,6 +10,7 @@ class DestinationXls:
 
         self._style_defs={}
         self._style_defs[Style.Month]= xlwt.easyxf(num_format_str='D-MMM')
+        self._style_defs[Style.Day]= xlwt.easyxf(num_format_str='D-MMM')
         self._style_defs[Style.Money]= xlwt.easyxf(num_format_str='#,##0')
         self._style_defs[Style.DetailedMoney]= xlwt.easyxf(num_format_str='#,##0.00')
         self._style_defs[Style.Money+Style.Red]= xlwt.easyxf('font: color-index red',num_format_str='#,##0')
@@ -42,7 +43,7 @@ class DestinationXls:
 class Style:
     Unknown=0
     Month=1
-    #Day=2
+    Day=2
     Money=4
     DetailedMoney=8
     #Gray=16

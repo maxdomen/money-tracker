@@ -9,18 +9,18 @@ from debt import BudgetFreq, BudgetBehaviour
 
 __author__ = 'Max'
 
-class BigPicturePeriod:
-    def __init__(self):
-        self.reminder=0
-        self.bills_topay=0
-        self.avaialble_funds=0
+#class BigPicturePeriod2:
+#    def __init__(self):
+#        self.reminder=0
+#        self.bills_topay=0
+#        self.avaialble_funds=0
 
-        self.reminders={"Total":0.0}
-        self.revenue_streams={"Total":0.0}
+#        self.reminders={"Total":0.0}
+#        self.revenue_streams={"Total":0.0}
 
-        self.costs={"Total":0.0}
+#        self.costs={"Total":0.0}
 
-        self.ebitda=0
+#        self.ebitda=0
 
 
 class Widget:
@@ -174,19 +174,6 @@ class DashboardDataset:
                 else:
                     funds-=row.amount
 
-                #period=budget.period
-                #if row.amount<500:
-                #    firstrow[1]+=row.amount
-                #    continue
-                #iscollapsed=collapseperiods.count(period)>0
-                #iscollapsed=False
-                #if iscollapsed:
-                #    if commoncosts.has_key(budget):
-                #        commoncosts[budget]+=row.amount
-                #    else:
-                #        commoncosts[budget]=row.amount
-                #        commondates[budget]=row.date
-                #    continue
    
                 txrow=[]
 
@@ -219,23 +206,6 @@ class DashboardDataset:
                 prevdescr=row.description
 
 
-        #for budget, amount in commoncosts.items():
-        #    txrow=[]
-        #    date=commondates[budget]
-        #    txrow.append(self.strdate(date))
-
-        #    debit=amount
-        #    credit=0
-        #    if budget.credit>0:
-        #        debit=0
-        #        credit=amount
-
-        #    txrow.append(debit)
-        #    txrow.append(credit)
-        #    txrow.append(0)
-        #    txrow.append('')
-        #    txrow.append(budget.description)
-        #    datarows.append(txrow)
 
         totalcredit=0
         totaldebit=0

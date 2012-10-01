@@ -212,7 +212,7 @@ class PrintStatementToExcel2:
                 ws.write(ri,srcinfoi+2, stags)
 
                 if hasattr(row, 'classification'):
-                    ws.write(ri,srcinfoi+3, row.classification)
+                    ws.write(ri,srcinfoi+3, row.classification.title)
 
 
 
