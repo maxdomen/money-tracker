@@ -66,7 +66,7 @@ def loadrates():
     Currency.addrate(datetime(2012, 6, 1),rub, usd,32.9173)
     Currency.addrate(datetime(2012, 6, 25),rub, usd,33.250)
 
-
+    Currency.addrate(datetime(2012, 10, 1),rub, usd,31.0)
 def svetaaccounting(basedir,acc):
     #tcs = Account('scash',rub)
     #avr = Account('balt',rub)
@@ -333,59 +333,45 @@ def homeaccounting(basedir):
 
 
 
-    virt_max_cm = Account('virt_max_cm',rub)
-    virt_max_cm.leftover(LeftOver(datetime(2012,1,1),-25441))
+    #virt_max_cm = Account('virt_max_cm',rub)
+    #virt_max_cm.leftover(LeftOver(datetime(2012,1,1),-25441))
 
-    tx=Tx(-1477,datetime(2012,2,13) )
-    tx.comment=u"списание денег за подарки "
-    tx.add_tag("Reimbursment")
-    virt_max_cm.out(tx)
+    #tx=Tx(-1477,datetime(2012,2,13) )
+    #tx.comment=u"списание денег за подарки "
+    #tx.add_tag("Reimbursment")
+    #virt_max_cm.out(tx)
 
-    tx=Tx(2000,datetime(2012,2,22) )
-    tx.comment=u"макс заплатил за корпоративные блины "
-    tx.add_tag("Reimbursment")
-    virt_max_cm.out(tx)
+    #tx=Tx(2000,datetime(2012,2,22) )
+    #tx.comment=u"макс заплатил за корпоративные блины "
+    #tx.add_tag("Reimbursment")
+    #virt_max_cm.out(tx)
 
-    tx=Tx(5000,datetime(2012,3,19) )
-    tx.comment=u"выдали максу кешем"
-    tx.add_tag("Reimbursment")
-    virt_max_cm.income(tx)
+    #tx=Tx(5000,datetime(2012,3,19) )
+    #tx.comment=u"выдали максу кешем"
+    #tx.add_tag("Reimbursment")
+    #virt_max_cm.income(tx)
 
 
-    tx=Tx(350,datetime(2012,3,27) )
-    tx.comment=u"выдали максу кешем"
-    tx.add_tag("Reimbursment")
-    virt_max_cm.income(tx)
+    #tx=Tx(350,datetime(2012,3,27) )
+    #tx.comment=u"выдали максу кешем"
+    #tx.add_tag("Reimbursment")
+    #virt_max_cm.income(tx)
 
-    tx=Tx(200,datetime(2012,4,13) )
-    tx.comment=u"выдали максу кешем (подарок мише на свадьбу)"
-    tx.add_tag("Reimbursment")
-    virt_max_cm.income(tx)
+    #tx=Tx(200,datetime(2012,4,13) )
+    #tx.comment=u"выдали максу кешем (подарок мише на свадьбу)"
+    #tx.add_tag("Reimbursment")
+    #virt_max_cm.income(tx)
 
 
     #123271359avr20000.00 splice
 
-    virt_max_cm.leftover(LeftOver(datetime(2012,2,22),-30454.64))
-    virt_max_cm.leftover(LeftOver(datetime(2012,3,21),5407.42))
-    virt_max_cm.leftover(LeftOver(datetime(2012,5,5),228423.96))
-    virt_max_cm.leftover(LeftOver(datetime(2012,6,8),85318.81))
-    virt_max_cm.leftover(LeftOver(datetime(2012,7,9, 17,0,0),67205.08))
+    #virt_max_cm.leftover(LeftOver(datetime(2012,2,22),-30454.64))
+    #virt_max_cm.leftover(LeftOver(datetime(2012,3,21),5407.42))
+    #virt_max_cm.leftover(LeftOver(datetime(2012,5,5),228423.96))
+    #virt_max_cm.leftover(LeftOver(datetime(2012,6,8),85318.81))
+    #virt_max_cm.leftover(LeftOver(datetime(2012,7,9, 17,0,0),67205.08))
 
-    virt_max_cm.leftover(LeftOver(datetime(2012,7,21, 16,0,0),233207.07))
-
-
-    #virt_max_cm.leftover(LeftOver(datetime(2012,6,12),67000.81))
-
-
-    #virt_max_cm_statement=familypool.make_statement(rub,virt_max_cm,
-    #                                                filter_debit=[u"Reimbursment",u"Деньги CM"],
-    #                                                filter_credit=[u"Reimbursment",u"Под отчет",u"Деньги CM"],
-    #                                                skip_transitions=True)
-
-
-
-
-
+    #virt_max_cm.leftover(LeftOver(datetime(2012,7,21, 16,0,0),233207.07))
 
 
     #долги
@@ -395,14 +381,14 @@ def homeaccounting(basedir):
     # AVU
     # компания
     # источник - виртуальный аккаунт
-    debts=debt.Debts(start=datetime(2012,1,1),statement=statement)
-    debts.add_credit_card_as_account(statement,tcs,mode=1)
-    debts.add_credit_card_as_account(statement,avu,mode=1)
+    debts=debt.Debts(statement,start=datetime(2012,1,1))
+    #debts.add_credit_card_as_account(statement,tcs,mode=1)
+    #debts.add_credit_card_as_account(statement,avu,mode=1)
     #debts.add_credit_card_as_account(virt_max_cm_statement,virt_max_cm, mode=2, qualificator=-1)
-    debts.add_credit_card_as_account(virt_private_debts,virt_private_debts_acc, mode=2, qualificator=-1)
+    #debts.add_credit_card_as_account(virt_private_debts,virt_private_debts_acc, mode=2, qualificator=-1)
         
 
-    debts.calc_total()
+    #debts.calc_total()
 
     #classification=Classification(from_xls=(basedir+"home/2012/2012 logs and cash.xls","Classification"))
     #classification.finalize()
@@ -429,10 +415,16 @@ def homeaccounting(basedir):
             r.classification=group#.title
 
     wb=printdata(basedir,statement,dashboarddataset,virt_private_debts)
-    new_big_picture(wb,clasfctn,statement,budgetstatement)
+    bigpicttable=new_big_picture(wb,clasfctn,statement,budgetstatement)
+
 
     classify_statement(clasfctn,statement,wb, "Monthly")
-    relationshipwithcompany(statement,wb)
+    relationshipwithcompany(statement,wb,debts)
+
+    debts.xsl_to(bigpicttable)
+    DestinationXls(bigpicttable,wb)
+
+
     classify_statement_with_details(clasfctn,statement,wb, "TxsByCategory2",True, datetime(2012,9,1),datetime(2012,9,30,23,59,59))
     #detailedclassifiedstatement
     clasfctn=load_and_organize_classfication(basedir,statement, True)
@@ -442,7 +434,7 @@ def homeaccounting(basedir):
 
 
     wb.save("test.xls")
-def relationshipwithcompany(statement,wb):
+def relationshipwithcompany(statement,wb,debts):
 
 
 
@@ -455,7 +447,7 @@ def relationshipwithcompany(statement,wb):
     checkpoints.append([datetime(2012,6,8),85318.81,False])
     checkpoints.append([datetime(2012,7,9, 17,0,0),67205.08,False])
     checkpoints.append([datetime(2012,7,21, 16,0,0),233207.07,False])
-    checkpoints.append([datetime(2018,10,1),222878, False])
+    checkpoints.append([datetime(2012,10,1,17),222878, False])
 
     table=Table("CM and Max")
     table[0,0]=u"Отношения с компанией"
@@ -471,7 +463,7 @@ def relationshipwithcompany(statement,wb):
             continue
 
         relation=False
-        print row.classification.title
+        #print row.classification.title
         relation=check_classification(row.classification,"company_txs_in")
         if not relation:
             relation=check_classification(row.classification,"company_txs")
@@ -486,6 +478,7 @@ def relationshipwithcompany(statement,wb):
                 rowi+=1
                 mydebt=cp[1]
                 print_checkpoint(table,rbase+rowi,cp)
+                debts.define_debt("CM",cp[0],cp[1])
                 rowi+=1
                 break
 
@@ -503,6 +496,9 @@ def relationshipwithcompany(statement,wb):
         table[rbase+rowi,coli]=v, Style.Money
 
         table[rbase+rowi,15]=TagTools.TagsToStr(row.tags)
+
+        debts.define_debt("CM",row.date,mydebt)
+
         rowi+=1
 
     for cp in checkpoints:
@@ -510,6 +506,7 @@ def relationshipwithcompany(statement,wb):
                  rowi+=1
                  mydebt=cp[1]
                  print_checkpoint(table,rbase+rowi,cp)
+                 debts.define_debt("CM",cp[0],cp[1])
                  rowi+=1
                  break
 
@@ -540,7 +537,7 @@ def big_pict_period(table,coli,p,clasfctn,monthlydataset,cummulative):
     losses=monthlydataset.calcsubtotals(category,p)
     table[3,coli]=losses
     ebitda=income-losses
-    #table[4,coli]=ebitda
+
 
     if ebitda>0:
          table[4,coli]=ebitda, Style.Money+Style.Green
@@ -583,7 +580,9 @@ def new_big_picture(wb,clasfctn,statement,budgetstatement):
         cummulative=big_pict_period(table,coli,p,clasfctn,budgetmonthlydataset,cummulative)
 
         coli+=1
-    DestinationXls(table,wb)
+
+    return table
+
 
 def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_company_txs, date_start, date_finish):
     for r in statement.Rows:
@@ -591,7 +590,6 @@ def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_
             continue
 
         if not (r.date>=date_start and r.date<=date_finish):
-            #print r.description, r.date, date_finish
             continue
 
         g=clasfctn.match_tags_to_category(r.normilized_tags)
@@ -607,7 +605,7 @@ def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_
     ws.col(2).width=256*12
     ws.col(7).width=256*12
 
-    rowi=0
+    #rowi=0
 
 
     details_for_cat(ws,clasfctn._root,0)

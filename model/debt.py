@@ -1,11 +1,13 @@
 # -*- coding: utf8 -*-
+import copy
 from datetime import datetime, timedelta
 #from decimal import Decimal
 import xlrd
 #from StatementReader import TxSource
 from accounts import Statement, StatementRow, RowType, Account, Tx, Pool
 #from aggregatereport import Period
-from common.Classification import Period
+from common.Classification import Period, TagTools
+from common.Table import Style
 from currency import usd, rub, Currency, Money
 from readers.StatementReader import TxSource
 
@@ -18,71 +20,138 @@ class DebtRow:
         #self.current=0
         #self.latest_known_date=None
         #self.history=[]
-        self._cells=[Money(0)]*max_period_index
+        #self._cells=[float(0)]*max_period_index
+        self.value=0.0
+        self.total=0.0
 class Debts:
-    def __init__(self, start=None, end=None,statement=None):
+    def __init__(self, statement,start=None, end=None):
         self.rows=[]
 
         if start==None:
-             start=statement.Rows[0].date
+             start=statement.get_time_start()
         if end==None:
-             end=statement.Rows[len(statement.Rows)-1].date+timedelta(seconds=1)
+             end=statement.get_time_finish()
 
         self._start=start
         self._end=end
 
         self.periods=Period.CreateSet(Period.Month,self._start,self._end,10)
 
-    def add_credit_card_as_account(self, statement, account, mode,qualificator=1):
-        debt=DebtRow(account.name, len(self.periods))
-        #debti=len(self.rows)
-        self.rows.append(debt)
+        self._process_statement(statement)
+    #def debt_tx(self, time, acccount,value):
+    #    pass
+    def _process_statement(self,statement):
+        self.accs={}
+        debtops=[]
 
 
+        self.accs["tcs"]=DebtRow("tcs",100)
+        self.accs["avu"]=DebtRow("avu",100)
+        self.accs["CM"]=DebtRow("CM",100)
 
-        #обработка строк
-        for row in statement.Rows:
-            #row_date=self._get_logical_date(row)
-            if mode==1:
-                if row.account!=account:
-                    continue
+        for r in statement.Rows:
 
-            row_date=row.date
-
-            v=row.left_acc
-            if mode==2:
-                v=row.left_pool
-            v=v*qualificator
-                #debt.current=v
-                #debt.latest_known_date=row_date
-            pi=0
-            for p in self.periods:
-                if row_date>=p._start and row_date<=p._end:
-                    debt._cells[pi]=v
-                    break
-                        #p._cells[debti]=v
-                pi+=1
+            if r.type!=RowType.Tx:
+                continue
+            tags=list(r.tags)
+            amount=r.amount.as_float()
+            date=r.date
 
 
-    def calc_total(self):
-        sumdebt=DebtRow("Total",len(self.periods))
-        #debti=len(self.rows)
-        self.rows.append(sumdebt)
+            if tags.count("debt")>0:
+                tags.remove("debt")
 
-        pi=0
+                if r.tx.direction==1:
+                    pass
+                    #tags.remove("__in")
+                    #print "INCOME"
+                else:
+                    amount=-1*amount
+
+                stags=TagTools.TagsToStr(tags)
+                #print "debt found",amount,stags,date
+                dr=self.accs.get(stags)
+                if not dr:
+                    dr=DebtRow(stags,100)
+                    self.accs[stags]=dr
+
+                debtops.append( (0,date,amount,tags,stags) )
+
+        #все возможные каналы долгов известны
+        emptyaccs=copy.deepcopy(self.accs)
         for p in self.periods:
-            #di=0
-            sum=Money(0)
-            for debt in self.rows:
-                v=debt._cells[pi]
-                #v=p._cells[di]
-                sum+=v
-                #di+=1
-            sumdebt._cells[pi]=sum
-            pi+=1
-        #if row_date>=p._start and row_date<=p._end:
-        #p._cells[debti]=v
+            p.accs=copy.deepcopy(emptyaccs)
 
+        #credit cards
+        for p in self.periods:
+            lastknownr=None
+            for r in statement.Rows:
+                if r.date>p._end:
+                    break
+                lastknownr=r
+
+
+
+            for accname, amount in lastknownr.cumulatives.items():
+                if accname=="tcs" or accname=="avu":
+                    if amount>0:
+                        amount=0
+                    amount=-1*amount
+                    debtops.append( (1,lastknownr.date,amount,[],accname) )
+
+        self.debtops=debtops
+
+    def define_debt(self,accname,date,amount):
+        #print date,amount
+        self.debtops.append( (1,date,amount,[],accname) )
+
+
+    def xsl_to(self,table):
+
+        for p in self.periods:
+                    #p.accs=copy.deepcopy(emptyaccs)
+                    #print "start period",p._start, p._end
+                    for acc in p.accs.values():
+                        acc.total=self.accs[acc.title].value
+
+                    for optype,date,amount,tags,key in self.debtops:
+                        if date>=p._start and date<=p._end:
+
+                            if optype==0:
+                                p.accs[key].value+=amount
+                                self.accs[key].value+=amount
+                                p.accs[key].total=self.accs[key].value
+
+                            if optype==1:
+                                p.accs[key].total=amount
+
+
+        baserowi=10
+        rowi=baserowi
+        for acc in self.accs.values():
+            table[rowi,0]=acc.title
+            rowi+=1
+        dtnow=datetime.now()+timedelta(days=31)
+
+
+        coli=1
+
+
+        for p in self.periods:
+            if  not (p._end<dtnow):
+                break
+
+            alldebts=0
+            rowi=baserowi
+            for acc in p.accs.values():
+                #table[rowi,coli]=acc.value, Style.Money
+                table[rowi,coli]=acc.total, Style.Money
+                alldebts+=acc.total
+                rowi+=1
+
+            table[baserowi-2,coli]=alldebts
+            #table[baserowi]
+            coli+=1
 
 
 class BudgetFreq:

@@ -646,6 +646,7 @@ class Pool:
 
         st.Rows=cleared
         return
+
     def create_row(self, type, account, tx, date, left_acc, left_pool, description, amount,tags):
         r=StatementRow()
         r.type=type
