@@ -333,47 +333,6 @@ def homeaccounting(basedir):
 
 
 
-    #virt_max_cm = Account('virt_max_cm',rub)
-    #virt_max_cm.leftover(LeftOver(datetime(2012,1,1),-25441))
-
-    #tx=Tx(-1477,datetime(2012,2,13) )
-    #tx.comment=u"списание денег за подарки "
-    #tx.add_tag("Reimbursment")
-    #virt_max_cm.out(tx)
-
-    #tx=Tx(2000,datetime(2012,2,22) )
-    #tx.comment=u"макс заплатил за корпоративные блины "
-    #tx.add_tag("Reimbursment")
-    #virt_max_cm.out(tx)
-
-    #tx=Tx(5000,datetime(2012,3,19) )
-    #tx.comment=u"выдали максу кешем"
-    #tx.add_tag("Reimbursment")
-    #virt_max_cm.income(tx)
-
-
-    #tx=Tx(350,datetime(2012,3,27) )
-    #tx.comment=u"выдали максу кешем"
-    #tx.add_tag("Reimbursment")
-    #virt_max_cm.income(tx)
-
-    #tx=Tx(200,datetime(2012,4,13) )
-    #tx.comment=u"выдали максу кешем (подарок мише на свадьбу)"
-    #tx.add_tag("Reimbursment")
-    #virt_max_cm.income(tx)
-
-
-    #123271359avr20000.00 splice
-
-    #virt_max_cm.leftover(LeftOver(datetime(2012,2,22),-30454.64))
-    #virt_max_cm.leftover(LeftOver(datetime(2012,3,21),5407.42))
-    #virt_max_cm.leftover(LeftOver(datetime(2012,5,5),228423.96))
-    #virt_max_cm.leftover(LeftOver(datetime(2012,6,8),85318.81))
-    #virt_max_cm.leftover(LeftOver(datetime(2012,7,9, 17,0,0),67205.08))
-
-    #virt_max_cm.leftover(LeftOver(datetime(2012,7,21, 16,0,0),233207.07))
-
-
     #долги
     #по картам
     #  источник счет, его отрицательное значение
@@ -382,23 +341,13 @@ def homeaccounting(basedir):
     # компания
     # источник - виртуальный аккаунт
     debts=debt.Debts(statement,start=datetime(2012,1,1))
-    #debts.add_credit_card_as_account(statement,tcs,mode=1)
-    #debts.add_credit_card_as_account(statement,avu,mode=1)
-    #debts.add_credit_card_as_account(virt_max_cm_statement,virt_max_cm, mode=2, qualificator=-1)
-    #debts.add_credit_card_as_account(virt_private_debts,virt_private_debts_acc, mode=2, qualificator=-1)
-        
-
-    #debts.calc_total()
-
-    #classification=Classification(from_xls=(basedir+"home/2012/2012 logs and cash.xls","Classification"))
-    #classification.finalize()
 
 
 
 
     clasfctn=load_and_organize_classfication(basedir,statement, False)
 
-    #bigpicture=BigPicture(statement,budgetstatement)
+
 
 
 
@@ -425,7 +374,21 @@ def homeaccounting(basedir):
     DestinationXls(bigpicttable,wb)
 
 
-    classify_statement_with_details(clasfctn,statement,wb, "TxsByCategory2",True, datetime(2012,9,1),datetime(2012,9,30,23,59,59))
+    m_t=datetime.now()
+    m_cur_d_start=datetime(m_t.year,m_t.month,1,0,0,0)
+    m_i=m_cur_d_start+timedelta(days=32)
+    m_cur_d_finish=datetime(m_i.year,m_i.month,1,0,0,0)-timedelta(seconds=1)
+    m_t=m_cur_d_start-timedelta(seconds=1)
+    m_prev_d_finish=m_t
+    m_prev_d_start=datetime(m_t.year,m_t.month,1)
+
+
+
+
+    classify_statement_with_details(clasfctn,statement,wb, "Details_Prev",True, m_prev_d_start,m_prev_d_finish)
+    classify_statement_with_details(clasfctn,statement,wb, "Details_Cur",True, m_cur_d_start,m_cur_d_finish)
+
+
     #detailedclassifiedstatement
     clasfctn=load_and_organize_classfication(basedir,statement, True)
     classify_statement(clasfctn,budgetstatement,wb, "BudgetMonthly")
@@ -608,11 +571,11 @@ def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_
     #rowi=0
 
 
-    details_for_cat(ws,clasfctn._root,0)
+    details_for_cat(ws,clasfctn._root,0, date_start, date_finish)
 
 
 
-def details_for_cat(ws,category, rowi):
+def details_for_cat(ws,category, rowi, date_start, date_finish):
 
     bc=0
     style_time1 = xlwt.easyxf(num_format_str='D-MMM')
@@ -630,6 +593,10 @@ def details_for_cat(ws,category, rowi):
     subtotal=0
     if hasattr(category, 'txs'):
         for r in category.txs:
+
+            if not (r.date>=date_start and r.date<=date_finish):
+                continue
+
             #print "   ",r.date,r.tx.direction, r.amount, r.description,"->", category.title
             ws.write(rowi, bc+0, r.date,style_time1)
             if r.tx.direction==1:
@@ -648,7 +615,7 @@ def details_for_cat(ws,category, rowi):
             rowi+=1
 
     for c in category.childs:
-        rowi, childtotal=details_for_cat(ws,c, rowi)
+        rowi, childtotal=details_for_cat(ws,c, rowi,date_start, date_finish)
         rowi+=1
         subtotal+=childtotal
 
