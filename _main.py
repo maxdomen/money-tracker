@@ -23,9 +23,6 @@ from model.printstatement import PrintStatementToExcel2, BalanseObservation
 from readers.StatementReader import *
 import xlwt
 from  common.Classification import *
-#from debt import *
-import pstats
-
 
 #UT
 def loadrates():
@@ -189,11 +186,6 @@ def tagging(basedir,familypool=None):
 
     familypool.get_tx_byid("123271359avr20000.00").slice(u"В транзакции по зарплате 0К, остальное на Москву",20000,["Reimbursment"],[u"Зарплата"])
 
-    #familypool.get_tx_byid("1261300avr15100.00").slice(u"Плата за внешний перевод",100,["2bank"],[])
-
-    #familypool.get_tx_byid("1261300avr15100.00").slice(u"Fee за межбанковский перевод",100,["2bank"],[])
-    #familypool.add_transition("1261300avr15000.00","1261300tcs15000.00",commission="1261300avr100.00", comission2="1261300avr10.00[1]")
-
 
     #apr
     familypool.get_tx_byid("1252113avr23682.00").set_logical_date(datetime(2012,4,30))
@@ -204,59 +196,6 @@ def tagging(basedir,familypool=None):
     tx=familypool.get_tx_byid("127600avr41682.00").set_logical_date(datetime(2012,6,30))
 
     tx=familypool.get_tx_byid("1271200wallet18318.00[1]").set_logical_date(datetime(2012,6,30))
-    #tx=familypool.get_tx_byid("1272000wallet10000.00").set_logical_date(datetime(2012,6,30))
-
-def printdata(basedir,statement,dashboarddataset,virt_private_debts):
-
-    print "Print statement Txs"
-
-
-
-
-    dashboardpublisher=DashboardPublisher(dashboarddataset,"test.xls","Dashboard")
-    #BigPicturePublisher(bigpicture,"test.xls","BigPicture",existing_workbook=dashboardpublisher.wb)
-
-    excel=PrintStatementToExcel2("test.xls","Txs",existing_workbook=dashboardpublisher.wb)
-    excel.set_period(datetime(2012,1,1),datetime.now())
-    excel.do_print(statement)
-
-    #dataset.layout._finalize()
-    #pub=Publisher(dataset, "test.xls", "SheetVert",existing_workbook=excel.wb)
-    #pub.vertical()
-
-
-    #pub2=Publisher(datasetmonthly, "test.xls", "SheetVert2", existing_workbook=pub.wb)
-    #pub2.horizontal()
-
-
-
-    #pubAgg1=Publisher2(agg, "test.xls", "Agg1",existing_workbook=excel.wb)
-    
-    #pub3=Publisher2(debts, "test.xls", "Agg1",existing_workbook=excel.wb,existing_sheet=pubAgg1.ws, after_row=8, sub_report_title="Debts")
-
-
-    #observer=PrintStatementToExcel2("test.xls","CM Balance", excel.wb)
-    #observer.set_period(datetime(2012,1,1),datetime.now())
-    #observer.do_print(virt_max_cm_statement)
-
-
-    #pub2=Publisher2(agg2, "test.xls", "BudgetAgg1",existing_workbook=excel.wb)
-
-    observer2=PrintStatementToExcel2("test.xls","Personal Debts", excel.wb)
-    observer2.set_period(datetime(2012,1,1),datetime.now())
-    observer2.do_print(virt_private_debts)
-
-
-
-    #pub2=Publisher(budgetmonthly, "test.xls", "BudgetVert2", existing_workbook=pub.wb)
-    #pub2.horizontal()
-
-
-
-
-    return excel.wb
-
-
 
 
 def homeaccounting(basedir):
@@ -320,26 +259,6 @@ def homeaccounting(basedir):
     dashboarddataset=DashboardDataset(statement,budgetstatement)
 
 
-
-
-
-
-
-    virt_private_debts_acc = Account('virt_private_debts',rub)
-    virt_private_debts =familypool.make_statement(rub,virt_private_debts_acc ,
-                                                    filter_debit=[u"debt"],
-                                                    filter_credit=[u"debt"],
-                                                    skip_transitions=True)
-
-
-
-    #долги
-    #по картам
-    #  источник счет, его отрицательное значение
-    # TCS
-    # AVU
-    # компания
-    # источник - виртуальный аккаунт
     debts=debt.Debts(statement,start=datetime(2012,1,1))
 
 
@@ -363,7 +282,18 @@ def homeaccounting(basedir):
             #    print "clasfctn"
             r.classification=group#.title
 
-    wb=printdata(basedir,statement,dashboarddataset,virt_private_debts)
+    print "Print statement Txs"
+    dashboardpublisher=DashboardPublisher(dashboarddataset,"test.xls","Dashboard")
+    excel=PrintStatementToExcel2("test.xls","Txs",existing_workbook=dashboardpublisher.wb)
+    excel.set_period(datetime(2012,1,1),datetime.now())
+    excel.do_print(statement)
+
+    wb=excel.wb
+
+    #return excel.wb
+
+
+
     bigpicttable=new_big_picture(wb,clasfctn,statement,budgetstatement)
 
 
@@ -689,7 +619,7 @@ def corpaccounting():
     accstoread={avr:1, avu:2, chase:3, max:4, egor:5, anna:6, ak:7}
     StatementReader.XlsLeftoversJournalReader('data/corp/2012/corp 2012 logs and cash.xls','Account Log',cashconfig).parse_to(accstoread)
 
-    #"C:\src\money\data\corp\2012\corp 2012 logs and ##cash.xls"
+
 
     ChaseBankReader("data/corp/2012/corp chase 2012 jan-mar.xls","Sheet1").parse_to(chase)
     AvangardReader("data/corp/2012/corp avr 2012 jan-mar.xls").parse_corporate_to(avr)
@@ -717,15 +647,6 @@ def corpaccounting():
 
     cmpool.get_tx_byid("122100avr345501.03").slice("Max Gannutin",65000,["maxg"])
     cmpool.get_tx_byid("122100avr345501.03").slice("Egor",15000,["egor"])
-  #  cmpool.get_tx_byid("123500avr13682.00").slice("Max Gannutin",65000,["maxg"])
-
-
-
-
-
-    #maxcost=Cost("Макс Ганнутин ЗП")
-    #msxcost.add_tx()
-
 
     statement=cmpool.make_statement(usd)
 
@@ -741,8 +662,6 @@ def corpaccounting():
     groups=["us","Salary",u"Под отчет","office"]
     excel.report_aggregate(statement,groups, True)
 
-    #,excel.weekly
-    #,excel.daily
     excel.set_chunk(3)
     excel.report_aggregate_horizontal(statement, groups, False)
 
