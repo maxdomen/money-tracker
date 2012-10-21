@@ -64,6 +64,13 @@ def loadrates():
     Currency.addrate(datetime(2012, 6, 25),rub, usd,33.250)
 
     Currency.addrate(datetime(2012, 10, 1),rub, usd,31.0)
+
+    Currency.addrate(datetime(2012, 10, 10),rub, cny,4.9374)
+
+    Currency.addrate(datetime(2012, 10, 10),usd, cny,0.1596)
+
+
+
 def svetaaccounting(basedir,acc):
     #tcs = Account('scash',rub)
     #avr = Account('balt',rub)

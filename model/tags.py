@@ -103,6 +103,8 @@ class AutoTagger:
                 txid=txid[2:len(txid)]
                 #print "  search by comment", txid
                 tx=self._searchbycomment(txid,acc.Txs)
+                #if not tx:
+                #    print "Manual tag without tx for string", txid
                 #if tx:
                 #    print "   found", tx.comment
             else:
@@ -117,15 +119,22 @@ class AutoTagger:
             if tx:
                 tx.remove_tag(tag)
     def _searchbycomment(self,comment,txss):
+
+        #так как поиск ведется по комментарию, а его уникальность не гарантируется,
+        #надо убедиться, что есть только одна транзакция с этим комментраием
+        target=None
         for tx in txss:
-            #if tx._comment_lowerstrip.find("sport")>=0:
-            #    print "SPORT1"
-            #    if comment.find("sport")>=0:
-            #        print "SPORT2", comment,tx._comment_lowerstrip
-            #print "   check",tx._comment_lowerstrip
+            #if tx._comment_lowerstrip.find("40239300000490")>=0 and comment.find("40239300000490")>=0:
+            #    print "!",tx._comment_lowerstrip
             if tx._comment_lowerstrip==comment:
-                return tx
-        return None
+                if target:
+                    print "Manual tag ambiguity for string:",comment
+                    return target
+                target=tx
+
+
+
+        return target
     def _dotag2(self, tx):
         pass
     def _dotag(self, tx):
@@ -162,10 +171,18 @@ class AutoTagger:
             else:
                 txid=unicode_txid
 
-            if len(txid) and  not txid[1:4].isdigit():
-                #вместо id транзакции дано описание транзакции
-                txid="--"+unicode_txid.lower().strip()
-                #print "",txid
+            #txid=txid.strip()
+            if len(txid):
+                txid=txid.strip()
+                if txid.find("##")==0:
+                    #unicode_txid2=r[1].value
+                    txid="--"+unicode_txid.lower().strip()[2:len(unicode_txid)]
+                    #print "----##",txid
+                else:
+                    if not txid[1:6].isdigit():
+                        #вместо id транзакции дано описание транзакции
+                        txid="--"+unicode_txid.lower().strip()
+                        #print "----",txid
 
 
             tag_add1=r[2].value

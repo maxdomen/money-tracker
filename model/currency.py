@@ -19,6 +19,7 @@ usd = 2
 eur=3
 gbr=4
 cad=5
+cny=6
 
 class Money:
     __slots__ = ['float']
@@ -166,6 +167,12 @@ class Currency:
                     if cur_index<0:
                         cur_index=amount.find('GBP')
                         currency= accounts.gbr
+
+                        if cur_index<0:
+                            cur_index=amount.find('CNY')
+                            currency= accounts.cny
+
+
                         if cur_index<0:
                             raise Exception("Unknown currency in "+amount)
         return currency, cur_index
