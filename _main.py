@@ -78,7 +78,7 @@ def svetaaccounting(basedir,acc):
     XlsReader(basedir+'home/2012/2012 sveta.xlsx','Records',cashconfig).parse_to([acc])
 
 
-def parsing(basedir,avr,avu,tcs,boa,wallet,safe, sveta, budget):
+def parsing(basedir,avr,avu,avs,tcs,boa,wallet,safe, sveta, budget):
     print "Load sources"
     BankOfAmericaReader(basedir+"home/2012/boa 2012.csv").parse_to(boa)
 
@@ -99,6 +99,7 @@ def parsing(basedir,avr,avu,tcs,boa,wallet,safe, sveta, budget):
     AvangardReader(basedir+"home/2012/avu sep 2012.xls").parse_private_withreserved_to(avu)
 
 
+    AvangardReader(basedir+"home/2012/avs sep 2012.xls").parse_private_withreserved_to(avs)
 
 
     TCSBankReader(basedir+"home/2012/tcs jan 2012new.csv").parse2012_to(tcs)
@@ -220,6 +221,9 @@ def homeaccounting(basedir):
     tcs = Account('tcs',rub)
     tcs.limit=-75000
     avr = Account('avr',rub)
+
+    avs = Account('avs',rub)
+
     avu = Account('avu',usd)
     avu.limit=-2000
     boa = Account('boa',usd)
@@ -230,12 +234,13 @@ def homeaccounting(basedir):
 
     budget= debt.Budget()
 
-    parsing(basedir,avr,avu,tcs,boa,wallet,safe, sveta,budget)
+    parsing(basedir,avr,avu,avs,tcs,boa,wallet,safe, sveta,budget)
 
     familypool = Pool()
     familypool.link_account(tcs)
     familypool.link_account(avr)
     familypool.link_account(avu)
+    familypool.link_account(avs)
     familypool.link_account(boa)
     familypool.link_account(wallet)
     familypool.link_account(safe)
@@ -326,10 +331,12 @@ def homeaccounting(basedir):
     classify_statement_with_details(clasfctn,statement,wb, "Details_Cur",True, m_cur_d_start,m_cur_d_finish)
 
 
-    #detailedclassifiedstatement
+
+
     clasfctn=load_and_organize_classfication(basedir,statement, True)
     classify_statement(clasfctn,budgetstatement,wb, "BudgetMonthly")
 
+    budget_weekly_planner(wb,m_cur_d_start,m_cur_d_finish,budgetstatement,clasfctn)
 
 
 
@@ -511,19 +518,21 @@ def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_
     details_for_cat(ws,clasfctn._root,0, date_start, date_finish)
 
 
-
+def build_category_path(category):
+    cattitle=category.title
+    p=category.parent
+    while p:
+        if p.title=="_root":
+            break
+        cattitle=p.title+"/"+cattitle
+        p=p.parent
+    return cattitle
 def details_for_cat(ws,category, rowi, date_start, date_finish):
 
     bc=0
     style_time1 = xlwt.easyxf(num_format_str='D-MMM')
     style_money=xlwt.easyxf(num_format_str='#,##0.00')
-    cattitle=category.title
-    p=category.parent
-    while p:
-            if p.title=="_root":
-                break
-            cattitle=p.title+"/"+cattitle
-            p=p.parent
+    cattitle=build_category_path(category)
     ws.write(rowi, 0, cattitle)
     rowi+=1
 
@@ -596,88 +605,117 @@ def classify_statement(classification,statement,wb, sheetname):
     printer=ClassificationPrinter(monthlydataset, existing_sheet=ws)
     return classification
 
+class WeekDef:
+    pass
+def budget_weekly_planner(wb, d_start, d_finish, plan, clasfctn):
+    table=Table("WeeklyPlanner")
+
+    weeks=[]
+    w=WeekDef()
+    weeks.append(w)
+    t=d_start
+    w.startday=t
+    w.windex=0
+    w.plan_total=0
+    while t<d_finish:
+        w.lastday=t
+        if t.weekday()==6:
+            i=w.windex
+            w=WeekDef()
+            w.startday=t+timedelta(days=1)
+            w.windex=i+1
+            w.plan_total=0
+            weeks.append(w)
+        t+=timedelta(days=1)
+
+    rowi=1
+    coli=2
+    #windex=1
+    for w in weeks:
+        print w.startday,w.lastday
+        w.coli=coli
+        table[rowi,coli]="Week {0}".format(w.windex)
+        #windex+=1
+        table[rowi+1,coli]="{0}-{1}".format(w.startday.day,w.lastday.day)
+        coli+=2
 
 
-####
-def corpaccounting():
-    loadrates()
+    for row in plan.Rows:
+        if row.date<d_start and row.date>d_finish:
+            continue
+        if row.tx.direction==1:
+            continue
+        for w in weeks:
+            if row.date>=w.startday and row.date<=w.lastday:
+                g=clasfctn.match_tags_to_category(row.normilized_tags)
+                if not hasattr(g, 'txs'):
+                    g.txs=[]
+                g.txs.append(row)
+                row.weekindex=w.windex
 
-    avr = Account('avr',rub)
-    avu = Account('avu',usd)
-    chase = Account('chase',usd)
-    max = Account('max',rub)
-    egor = Account('egor',rub)
-    anna = Account('anna',rub)
-    ak = Account('ak',rub)
-
-    cmpool = Pool()
-    cmpool.link_account(avr)
-    cmpool.link_account(avu)
-    cmpool.link_account(chase)
-    cmpool.link_account(max)
-    cmpool.link_account(egor)
-    cmpool.link_account(anna)
-    cmpool.link_account(ak)
-
-    cashconfig={'first_row':1,'col_date':0, 'col_acc':1, 'col_op':2,'col_in':3,'col_out':4,'col_balance':5, 'col_tag1':6,'col_tag2':7}
-    StatementReader.XlsReader('data/corp/2012/corp 2012 logs and cash.xls','Cash ops',cashconfig).parse_to( [max,egor,anna,ak])
-
-    cashconfig={'first_row':1,'col_date':0}
-    accstoread={avr:1, avu:2, chase:3, max:4, egor:5, anna:6, ak:7}
-    StatementReader.XlsLeftoversJournalReader('data/corp/2012/corp 2012 logs and cash.xls','Account Log',cashconfig).parse_to(accstoread)
-
-
-
-    ChaseBankReader("data/corp/2012/corp chase 2012 jan-mar.xls","Sheet1").parse_to(chase)
-    AvangardReader("data/corp/2012/corp avr 2012 jan-mar.xls").parse_corporate_to(avr)
-    AvangardReader("data/corp/2012/corp avr 2012 apr.xls").parse_corporate_to(avr)
-
-    tagger=AutoTagger()
-    tagger.load_declares("data/corp/2012/corp 2012 logs and cash.xls","Auto Tags")
-    tagger.load_declares("data/corp/2012/corp 2012 logs and cash.xls","Auto Tags Chase")
-    tagger.load_manual_tags("data/corp/2012/corp 2012 logs and cash.xls","Manual Tags")
-
-
-
-    tagger.dotag(avr)
-    tagger.dotag(avu)
-    tagger.dotag(chase)
-    tagger.dotag(max)
-    tagger.dotag(egor)
-    tagger.dotag(anna)
-
-    #122100avr345501.03
-    cmpool.get_tx_byid("122100avr345501.03").set_logical_date(datetime(2012,1,31)) #переносим транзакцию зарплаты на соотвествующий месяц
-    cmpool.get_tx_byid("1221000avr36774.19").set_logical_date(datetime(2012,1,31))
-    cmpool.get_tx_byid("123500avr13682.00").set_logical_date(datetime(2012,2,28))
-
-
-    cmpool.get_tx_byid("122100avr345501.03").slice("Max Gannutin",65000,["maxg"])
-    cmpool.get_tx_byid("122100avr345501.03").slice("Egor",15000,["egor"])
-
-    statement=cmpool.make_statement(usd)
-
-
-    excel=PrintStatementToExcel2("test2.xls")
-    excel.set_period(datetime(2012,1,1),datetime.now())
-    excel.do_print(statement)
-
-
-    print "Print statement Aggregate"
-
-    #groups=["sveta","food",u"Рекуррентные","Reimbursment","2bank", "misc"]
-    groups=["us","Salary",u"Под отчет","office"]
-    excel.report_aggregate(statement,groups, True)
-
-    excel.set_chunk(3)
-    excel.report_aggregate_horizontal(statement, groups, False)
+                #print w.windex, g.title,row.description, row.amount
 
 
 
-    print "Write to file"
-    excel.save()
+    budget_weekly_planner_cat(table,clasfctn._root,5,  d_start, d_finish,plan,weeks)
+    for w in weeks:
+        table[3,w.coli+1]=w.plan_total, Style.Money
 
-    return
+    DestinationXls(table,wb)
+
+def budget_weekly_planner_cat(table,category, rowi, date_start, date_finish,plan,weeks):
+
+    startrowi=rowi
+    #cattitle=build_category_path(category)
+    cattitle=category.title
+    table[rowi, 0]= cattitle
+    rowi+=1
+
+    #trowi=rowi
+    trowis=[]
+    for w in weeks:
+        trowis.append(0)
+    maxtrow=rowi
+    outputedrecords=0
+    if hasattr(category, 'txs'):
+        for row in category.txs:
+            week=weeks[row.weekindex]
+            trowi=  trowis[row.weekindex]
+            trowis[row.weekindex]=trowi+1
+            coli=row.weekindex*2+2
+            print category.title,row.weekindex,trowi, row.description, row.amount
+            week.plan_total+=row.amount.as_float()
+            #table[rowi+trowi,coli]=u"{0} {1}".format(row.description, row.amount)
+            table[rowi+trowi,coli]=row.description
+            table[rowi+trowi,coli+1]=row.amount.as_float(),Style.Money
+
+            if rowi+trowi>maxtrow:
+                maxtrow=rowi+trowi
+            outputedrecords+=1
+
+    rowi=maxtrow+1
+
+    if outputedrecords==0:
+        table[rowi-2, 0]= cattitle+" [empty]"
+        rowi=startrowi
+
+    for c in category.childs:
+        rowi, child_outputedrecords=budget_weekly_planner_cat(table,c, rowi,date_start, date_finish,plan,weeks)
+        outputedrecords+=child_outputedrecords
+        if outputedrecords>0:
+            rowi+=1
+        #subtotal+=childtotal
+    return rowi,outputedrecords
+def budget_weekly_planner_cat_enumrecs(category,plan,table,rowi,date_start, date_finish,weeks):
+    for row in plan.Rows:
+         if row.date<date_start and row.date>date_finish:
+             continue
+         if row.tx.direction==1:
+             continue
+         for w in weeks:
+             if row.date>=w.startday and row.date<=w.lastday:
+                 print w.windex, row.description, row.amount
+    return rowi
 
 #corpaccounting()
 homeaccounting("../money-data/")
