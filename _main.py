@@ -1,8 +1,9 @@
 #! coding: utf-8
 import cProfile
 from common.Classification import Classification, ClassificationDataset, ClassificationPrinter, Period
-from common.Table import Table, Style, DestinationXls
+from common.Table import Table, Style, Color,DestinationXls
 from model import debt
+import copy
 
 import readers.StatementReader
 from model.dashboard import DashboardDataset, DashboardPublisher
@@ -205,6 +206,12 @@ def tagging(basedir,familypool=None):
 
     tx=familypool.get_tx_byid("1271200wallet18318.00[1]").set_logical_date(datetime(2012,6,30))
 
+    #nov
+    familypool.get_tx_byid("1211700tcs5522.00").slice(u"Вино 6 бутылок",1834,[u"спиртное"],["food"])
+    familypool.get_tx_byid("1211700tcs5522.00").slice(u"Гель для душа(x2) и шампунь(x2)",562,[u"хоз"],["food"])
+    familypool.get_tx_byid("1211700tcs5522.00").slice(u"Бритвы",345,[u"хоз"],["food"])
+    tx=familypool.get_tx_byid("12102500sveta3700.00").set_logical_date(datetime(2012,11,1))
+
 
 def homeaccounting(basedir):
     loadrates()
@@ -336,8 +343,9 @@ def homeaccounting(basedir):
     clasfctn=load_and_organize_classfication(basedir,statement, True)
     classify_statement(clasfctn,budgetstatement,wb, "BudgetMonthly")
 
-    budget_weekly_planner(wb,m_cur_d_start,m_cur_d_finish,budgetstatement,clasfctn)
-
+    #budget_weekly_planner(wb,m_cur_d_start,m_cur_d_finish,budgetstatement,clasfctn,statement)
+    budget_weekly_planner(wb,"Weekly_Prev",m_prev_d_start,m_prev_d_finish,budgetstatement,clasfctn,statement)
+    budget_weekly_planner(wb,"Weekly_Cur",m_cur_d_start,m_cur_d_finish,budgetstatement,clasfctn,statement)
 
 
     wb.save("test.xls")
@@ -607,8 +615,17 @@ def classify_statement(classification,statement,wb, sheetname):
 
 class WeekDef:
     pass
-def budget_weekly_planner(wb, d_start, d_finish, plan, clasfctn):
-    table=Table("WeeklyPlanner")
+def budget_weekly_planner(wb, caption,d_start, d_finish, plan, clasfctn2, fact):
+    table=Table(caption)
+    table.normal_magn=80
+    table.define_style("totals", foreground_color=Color.Red)
+    table.define_style("weekcaptions", bold=True, font_size=10)
+    table.define_style("categoryline", bold=True, background_color=Color.LightGreen)
+    table.define_style("categoryline_totals", italic=True,background_color=Color.LightGreen, formatting_style=Style.Money)
+    table.define_style("item_plan",background_color=Color.LightGray, formatting_style=Style.Money)
+    table.define_style("item_fact", formatting_style=Style.Money)
+
+    clasfctn=copy.deepcopy(clasfctn2)
 
     weeks=[]
     w=WeekDef()
@@ -617,6 +634,7 @@ def budget_weekly_planner(wb, d_start, d_finish, plan, clasfctn):
     w.startday=t
     w.windex=0
     w.plan_total=0
+    w.fact_total=0
     while t<d_finish:
         w.lastday=t
         if t.weekday()==6:
@@ -625,69 +643,139 @@ def budget_weekly_planner(wb, d_start, d_finish, plan, clasfctn):
             w.startday=t+timedelta(days=1)
             w.windex=i+1
             w.plan_total=0
+            w.fact_total=0
             weeks.append(w)
         t+=timedelta(days=1)
 
     rowi=1
-    coli=2
+    coli=4
     #windex=1
     for w in weeks:
         print w.startday,w.lastday
         w.coli=coli
-        table[rowi,coli]="Week {0}".format(w.windex)
+        table[rowi,coli]="Week {0}".format(w.windex+1), "weekcaptions"
         #windex+=1
-        table[rowi+1,coli]="{0}-{1}".format(w.startday.day,w.lastday.day)
-        coli+=2
+        table[rowi,coli+1]="{0}-{1}".format(w.startday.day,w.lastday.day), "weekcaptions"
+        coli+=4
 
 
+
+                #print w.windex, g.title,row.description, row.amount
+
+    budget_weekly_planner_preprocessrows(plan,clasfctn,d_start,d_finish,weeks,False)
+    budget_weekly_planner_preprocessrows(fact,clasfctn,d_start,d_finish,weeks, True)
+
+    budget_weekly_planner_cat(table,clasfctn._root,6,  d_start, d_finish,plan,weeks)
+    plan_total=0
+    fact_total=0
+    for w in weeks:
+        table[3,w.coli+1]=u"План"
+        table[4,w.coli+1]=w.plan_total, Style.Money
+        plan_total+=w.plan_total
+        table.set_column_width(w.coli, 10)
+        table.set_column_width(w.coli+1, 5)
+        table[3,w.coli+3]=u"Факт"
+        table[4,w.coli+3]=w.fact_total, Style.Money
+        fact_total+=w.fact_total
+        table.set_column_width(w.coli+2, 10)
+        table.set_column_width(w.coli+3, 5)
+        table.set_column_width(w.coli+4, 1)
+
+    mtitle="{0} {1}".format(d_start.strftime("%B"),d_start.year)
+    table[0,0]=mtitle
+    table[0,weeks[3].coli]=mtitle
+    table[3,1]=u"План"
+    table[3,2]=u"Факт"
+    table[4,1]=plan_total, Style.Money
+    table[4,2]=fact_total, Style.Money
+
+
+    table.set_column_width(0, 8)
+    table.set_column_width(1, 5)
+    table.set_column_width(2, 5)
+    table.set_column_width(3, 1)
+
+    DestinationXls(table,wb,def_font_height=6)
+def budget_weekly_planner_preprocessrows(plan,clasfctn,d_start,d_finish,weeks, isfact):
     for row in plan.Rows:
+        if row.type!=RowType.Tx:
+            continue
+
         if row.date<d_start and row.date>d_finish:
             continue
         if row.tx.direction==1:
             continue
         for w in weeks:
+            #row.tx.
             if row.date>=w.startday and row.date<=w.lastday:
                 g=clasfctn.match_tags_to_category(row.normilized_tags)
                 if not hasattr(g, 'txs'):
                     g.txs=[]
                 g.txs.append(row)
                 row.weekindex=w.windex
-
-                #print w.windex, g.title,row.description, row.amount
-
-
-
-    budget_weekly_planner_cat(table,clasfctn._root,5,  d_start, d_finish,plan,weeks)
-    for w in weeks:
-        table[3,w.coli+1]=w.plan_total, Style.Money
-
-    DestinationXls(table,wb)
+                row.palanner_isfact=isfact
 
 def budget_weekly_planner_cat(table,category, rowi, date_start, date_finish,plan,weeks):
 
+
+    isfamily=check_classification(category, "family_out")
+    #if not isfamily:
+    #    return rowi,0
+
     startrowi=rowi
-    #cattitle=build_category_path(category)
     cattitle=category.title
-    table[rowi, 0]= cattitle
+
+    if isfamily:
+        table[startrowi, 0]= cattitle, "categoryline"
     rowi+=1
 
-    #trowi=rowi
-    trowis=[]
-    for w in weeks:
-        trowis.append(0)
-    maxtrow=rowi
+
     outputedrecords=0
-    if hasattr(category, 'txs'):
+
+
+    #trowi=rowi
+    trowis_plan=[]
+    trowis_fact=[]
+    for w in weeks:
+        trowis_plan.append(0)
+        trowis_fact.append(0)
+        w.cat_plan_total=0
+        w.cat_fact_total=0
+    maxtrow=rowi
+    cat_plan_total=0
+    cat_fact_total=0
+
+    if hasattr(category, 'txs') and isfamily:
         for row in category.txs:
             week=weeks[row.weekindex]
-            trowi=  trowis[row.weekindex]
-            trowis[row.weekindex]=trowi+1
-            coli=row.weekindex*2+2
-            print category.title,row.weekindex,trowi, row.description, row.amount
-            week.plan_total+=row.amount.as_float()
-            #table[rowi+trowi,coli]=u"{0} {1}".format(row.description, row.amount)
-            table[rowi+trowi,coli]=row.description
-            table[rowi+trowi,coli+1]=row.amount.as_float(),Style.Money
+            trowis_n=trowis_plan
+
+            if row.palanner_isfact:
+                trowis_n=trowis_fact
+
+            trowi=  trowis_n[row.weekindex]
+            trowis_n[row.weekindex]=trowi+1
+
+            coli=week.coli
+            #print category.title,row.weekindex,trowi, row.description, row.amount
+            amount=row.amount.as_float()
+            #style=Style.Gray
+            style="item_plan"
+            if row.palanner_isfact:
+                coli+=2
+                week.fact_total+=amount
+                week.cat_fact_total+=amount
+                cat_fact_total+=amount
+                style="item_fact"
+            else:
+                week.plan_total+=amount
+                week.cat_plan_total+=amount
+                cat_plan_total+=amount
+                budget=row.tx.source_budget
+                #if budget.
+
+            table[rowi+trowi,coli]=row.description, style
+            table[rowi+trowi,coli+1]=amount,style
 
             if rowi+trowi>maxtrow:
                 maxtrow=rowi+trowi
@@ -697,7 +785,16 @@ def budget_weekly_planner_cat(table,category, rowi, date_start, date_finish,plan
 
     if outputedrecords==0:
         table[rowi-2, 0]= cattitle+" [empty]"
+        table[rowi-2, 0]= ""
         rowi=startrowi
+    else:
+        table[startrowi, 1]= cat_plan_total,"categoryline_totals"
+        table[startrowi, 2]= cat_fact_total,"categoryline_totals"
+        for w in weeks:
+            table[startrowi,w.coli]="","categoryline_totals"
+            table[startrowi,w.coli+2]="","categoryline_totals"
+            table[startrowi,w.coli+1]=w.cat_plan_total,"categoryline_totals"
+            table[startrowi,w.coli+3]=w.cat_fact_total,"categoryline_totals"
 
     for c in category.childs:
         rowi, child_outputedrecords=budget_weekly_planner_cat(table,c, rowi,date_start, date_finish,plan,weeks)
