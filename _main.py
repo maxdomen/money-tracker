@@ -20,7 +20,7 @@ from readers.tcs import TCSBankReader
 
 from model.accounts import *
 from model.tags import AutoTagger
-from model.printstatement import PrintStatementToExcel2, BalanseObservation
+from model.printstatement import PrintStatementToExcel2
 from readers.StatementReader import *
 import xlwt
 from  common.Classification import *
@@ -212,6 +212,10 @@ def tagging(basedir,familypool=None):
     familypool.get_tx_byid("1211700tcs5522.00").slice(u"Бритвы",345,[u"хоз"],["food"])
     tx=familypool.get_tx_byid("12102500sveta3700.00").set_logical_date(datetime(2012,11,1))
 
+    familypool.get_tx_byid("1211200avr25375.00").set_logical_date(datetime(2012,10,30))
+
+
+
 
 def homeaccounting(basedir):
     loadrates()
@@ -363,6 +367,9 @@ def relationshipwithcompany(statement,wb,debts):
     checkpoints.append([datetime(2012,7,9, 17,0,0),67205.08,False])
     checkpoints.append([datetime(2012,7,21, 16,0,0),233207.07,False])
     checkpoints.append([datetime(2012,10,1,17),222878, False])
+    checkpoints.append([datetime(2012,11,6,16),114975, False])
+
+
 
     table=Table("CM and Max")
     table[0,0]=u"Отношения с компанией"
@@ -504,7 +511,10 @@ def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_
         if r.type!=RowType.Tx:
             continue
 
-        if not (r.date>=date_start and r.date<=date_finish):
+
+        dt=r.get_logical_date()
+
+        if not (dt>=date_start and dt<=date_finish):
             continue
 
         g=clasfctn.match_tags_to_category(r.normilized_tags)
@@ -547,12 +557,12 @@ def details_for_cat(ws,category, rowi, date_start, date_finish):
     subtotal=0
     if hasattr(category, 'txs'):
         for r in category.txs:
-
-            if not (r.date>=date_start and r.date<=date_finish):
+            dt=r.get_logical_date()
+            if not (dt>=date_start and dt<=date_finish):
                 continue
 
             #print "   ",r.date,r.tx.direction, r.amount, r.description,"->", category.title
-            ws.write(rowi, bc+0, r.date,style_time1)
+            ws.write(rowi, bc+0, dt,style_time1)
             if r.tx.direction==1:
                 acoli=bc+2
             else:
@@ -623,6 +633,7 @@ def budget_weekly_planner(wb, caption,d_start, d_finish, plan, clasfctn2, fact):
     table.define_style("categoryline", bold=True, background_color=Color.LightGreen)
     table.define_style("categoryline_totals", italic=True,background_color=Color.LightGreen, formatting_style=Style.Money)
     table.define_style("item_plan",background_color=Color.LightGray, formatting_style=Style.Money)
+    table.define_style("accum",bold=True, formatting_style=Style.Money)
     table.define_style("item_fact", formatting_style=Style.Money)
 
     clasfctn=copy.deepcopy(clasfctn2)
@@ -665,18 +676,34 @@ def budget_weekly_planner(wb, caption,d_start, d_finish, plan, clasfctn2, fact):
     budget_weekly_planner_preprocessrows(plan,clasfctn,d_start,d_finish,weeks,False)
     budget_weekly_planner_preprocessrows(fact,clasfctn,d_start,d_finish,weeks, True)
 
-    budget_weekly_planner_cat(table,clasfctn._root,6,  d_start, d_finish,plan,weeks)
+    lastrowi,outputedrecords=budget_weekly_planner_cat(table,clasfctn._root,6,  d_start, d_finish,plan,weeks)
     plan_total=0
     fact_total=0
+    prediction_total=0
+
+    table[lastrowi+2,0]=u"План, накапливающийся итог"
+    table[lastrowi+3,0]=u"Факт(предсказание), накапливающийся итог"
+
     for w in weeks:
         table[3,w.coli+1]=u"План"
         table[4,w.coli+1]=w.plan_total, Style.Money
         plan_total+=w.plan_total
+        table[lastrowi+1,w.coli+1]="Week {0}".format(w.windex+1)
+        table[lastrowi+2,w.coli+1]=plan_total, "accum"
+
+
         table.set_column_width(w.coli, 10)
         table.set_column_width(w.coli+1, 5)
         table[3,w.coli+3]=u"Факт"
         table[4,w.coli+3]=w.fact_total, Style.Money
         fact_total+=w.fact_total
+        if w.fact_total==0:
+            prediction_total+=w.plan_total
+        else:
+            prediction_total+=w.fact_total
+        table[lastrowi+3,w.coli+1]=prediction_total, "accum"
+
+
         table.set_column_width(w.coli+2, 10)
         table.set_column_width(w.coli+3, 5)
         table.set_column_width(w.coli+4, 1)

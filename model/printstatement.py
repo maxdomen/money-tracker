@@ -237,7 +237,7 @@ class PrintStatementToExcel2:
 
 
 
-class BalanseObservation():
+class BalanseObservation2_todel():
     def __init__(self, filename, sheetname,existing_workbook=None):
         self.filename=filename
         self.wb = existing_workbook

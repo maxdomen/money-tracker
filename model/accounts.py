@@ -286,7 +286,11 @@ class StatementRow:
         self.left_pool=Money()
         self.tags=[]
         self.left_acc_to=Money() #только для transition
-
+    def get_logical_date(self):
+        dt=self.date
+        if self.tx.logical_date:
+            dt=self.tx.logical_date
+        return dt
 class Statement:
     def __init__(self):
           self.Rows = []
@@ -314,7 +318,11 @@ class Statement:
                 ltags.append("__in")
 
             r.normilized_tags=ltags
-            res=(r.date,r.amount.as_float(),ltags)
+
+            dt=r.get_logical_date()
+            #if r.tx.logical_date:
+            #    dt=r.tx.logical_date
+            res=(dt,r.amount.as_float(),ltags)
             yield   res
 
 
