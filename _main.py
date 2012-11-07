@@ -214,6 +214,10 @@ def tagging(basedir,familypool=None):
 
     familypool.get_tx_byid("1211200avr25375.00").set_logical_date(datetime(2012,10,30))
 
+    familypool.get_tx_byid("128100avr23865.00").set_logical_date(datetime(2012,7,30))
+    familypool.get_tx_byid("1282120wallet36318.00[1]").set_logical_date(datetime(2012,7,30))
+
+
 
 
 
@@ -367,7 +371,7 @@ def relationshipwithcompany(statement,wb,debts):
     checkpoints.append([datetime(2012,7,9, 17,0,0),67205.08,False])
     checkpoints.append([datetime(2012,7,21, 16,0,0),233207.07,False])
     checkpoints.append([datetime(2012,10,1,17),222878, False])
-    checkpoints.append([datetime(2012,11,6,16),114975, False])
+    checkpoints.append([datetime(2012,11,6,16),114975, False]) #Москва ноябрь 2 доп расходы
 
 
 
@@ -734,7 +738,8 @@ def budget_weekly_planner_preprocessrows(plan,clasfctn,d_start,d_finish,weeks, i
             continue
         for w in weeks:
             #row.tx.
-            if row.date>=w.startday and row.date<=w.lastday:
+            dt=row.get_logical_date()
+            if dt>=w.startday and dt<=w.lastday:
                 g=clasfctn.match_tags_to_category(row.normilized_tags)
                 if not hasattr(g, 'txs'):
                     g.txs=[]
@@ -832,12 +837,13 @@ def budget_weekly_planner_cat(table,category, rowi, date_start, date_finish,plan
     return rowi,outputedrecords
 def budget_weekly_planner_cat_enumrecs(category,plan,table,rowi,date_start, date_finish,weeks):
     for row in plan.Rows:
-         if row.date<date_start and row.date>date_finish:
+         dt=row.get_logical_date()
+         if dt<date_start and dt>date_finish:
              continue
          if row.tx.direction==1:
              continue
          for w in weeks:
-             if row.date>=w.startday and row.date<=w.lastday:
+             if dt>=w.startday and dt<=w.lastday:
                  print w.windex, row.description, row.amount
     return rowi
 
