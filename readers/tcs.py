@@ -129,14 +129,16 @@ class TCSBankReader:
     def addrec_2012(self,acc, txdate, amount_rub,amount_orig, currency_orig , desc, srcdef):
         self.addrec2(acc, txdate, amount_rub,amount_orig, currency_orig , desc, srcdef)
         return
+    def parse2012b_to(self,acc):
+        self.parse2012x_to(acc,"cp1251")
     def parse2012_to(self,acc):
+        self.parse2012x_to(acc,"utf-8")
+    def parse2012x_to(self,acc,enc):
 
         #Дата и время операции	Дата списания	Сумма в валюте операции	 Сумма в р.		Описание
         print "  parse",self.filename
-
-        #f=open(self.filename,'rb')
         #f=codecs.open(self.filename,'r', encoding='cp1251')
-        f=codecs.open(self.filename,'r', encoding='utf-8')
+        f=codecs.open(self.filename,'r', encoding=enc)
 
 
         content=f.read()

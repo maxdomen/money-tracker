@@ -109,7 +109,7 @@ def parsing(basedir,avr,avu,avs,tcs,boa,wallet,safe, sveta, budget):
     TCSBankReader(basedir+"home/2012/tcs june 2012.csv").parse2012_to(tcs)
     TCSBankReader(basedir+"home/2012/tcs july 2012.csv").parse2012_to(tcs)
     TCSBankReader(basedir+"home/2012/tcs aug 2012.csv").parse2012_to(tcs)
-    TCSBankReader(basedir+"home/2012/tcs sep 2012.csv").parse2012_to(tcs)
+    TCSBankReader(basedir+"home/2012/tcs sep 2012.csv").parse2012b_to(tcs)
 
     #TCSBankReader("Data/home/2012/tcs june 2012b.csv").parse2011v2_to(tcs)
 
@@ -207,9 +207,10 @@ def tagging(basedir,familypool=None):
     tx=familypool.get_tx_byid("1271200wallet18318.00[1]").set_logical_date(datetime(2012,6,30))
 
     #nov
-    familypool.get_tx_byid("1211700tcs5522.00").slice(u"Вино 6 бутылок",1834,[u"спиртное"],["food"])
-    familypool.get_tx_byid("1211700tcs5522.00").slice(u"Гель для душа(x2) и шампунь(x2)",562,[u"хоз"],["food"])
-    familypool.get_tx_byid("1211700tcs5522.00").slice(u"Бритвы",345,[u"хоз"],["food"])
+
+    familypool.get_tx_byid("1211900tcs5522.00").slice(u"Вино 6 бутылок",1834,[u"спиртное"],["food"])
+    familypool.get_tx_byid("1211900tcs5522.00").slice(u"Гель для душа(x2) и шампунь(x2)",562,[u"хоз"],["food"])
+    familypool.get_tx_byid("1211900tcs5522.00").slice(u"Бритвы",345,[u"хоз"],["food"])
     tx=familypool.get_tx_byid("12102500sveta3700.00").set_logical_date(datetime(2012,11,1))
 
     familypool.get_tx_byid("1211200avr25375.00").set_logical_date(datetime(2012,10,30))
@@ -751,9 +752,10 @@ def budget_weekly_planner_cat(table,category, rowi, date_start, date_finish,plan
 
 
     isfamily=check_classification(category, "family_out")
-    #if not isfamily:
-    #    return rowi,0
-
+    isfinhelp=check_classification(category, "fin_help")
+    if isfinhelp:
+        isfamily=False
+        
     startrowi=rowi
     cattitle=category.title
 
@@ -791,7 +793,7 @@ def budget_weekly_planner_cat(table,category, rowi, date_start, date_finish,plan
             coli=week.coli
             #print category.title,row.weekindex,trowi, row.description, row.amount
             amount=row.amount.as_float()
-            #style=Style.Gray
+
             style="item_plan"
             if row.palanner_isfact:
                 coli+=2
@@ -804,7 +806,7 @@ def budget_weekly_planner_cat(table,category, rowi, date_start, date_finish,plan
                 week.cat_plan_total+=amount
                 cat_plan_total+=amount
                 budget=row.tx.source_budget
-                #if budget.
+
 
             table[rowi+trowi,coli]=row.description, style
             table[rowi+trowi,coli+1]=amount,style
@@ -833,7 +835,7 @@ def budget_weekly_planner_cat(table,category, rowi, date_start, date_finish,plan
         outputedrecords+=child_outputedrecords
         if outputedrecords>0:
             rowi+=1
-        #subtotal+=childtotal
+
     return rowi,outputedrecords
 def budget_weekly_planner_cat_enumrecs(category,plan,table,rowi,date_start, date_finish,weeks):
     for row in plan.Rows:
