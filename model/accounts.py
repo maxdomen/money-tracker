@@ -55,6 +55,7 @@ class Tx:
         self._cashedamount={}
         self.slices=[]
         self.logical_date=None
+        self.human_date=None
     def __str__(self):
         return self.get_id()
     def slice(self, title, amount, tags, tags_to_remove):
@@ -286,10 +287,20 @@ class StatementRow:
         self.left_pool=Money()
         self.tags=[]
         self.left_acc_to=Money() #только для transition
-    def get_logical_date(self):
+    def get_logical_date2(self):
         dt=self.date
         if self.tx.logical_date:
             dt=self.tx.logical_date
+        return dt
+
+    def get_human_or_logical_date(self):
+        dt=self.date
+        if self.tx.logical_date:
+            dt=self.tx.logical_date
+
+        if hasattr(self.tx,"human_date"):
+            if self.tx.human_date:
+                dt=self.tx.human_date
         return dt
 class Statement:
     def __init__(self):
@@ -319,9 +330,10 @@ class Statement:
 
             r.normilized_tags=ltags
 
-            dt=r.get_logical_date()
-            #if r.tx.logical_date:
-            #    dt=r.tx.logical_date
+            #dt=r.get_logical_date()
+
+            dt=r.get_human_or_logical_date()
+
             res=(dt,r.amount.as_float(),ltags)
             yield   res
 
@@ -682,6 +694,13 @@ class Pool:
         if hasattr(tx,"logical_date"):
             if tx.logical_date:
                 r.description=u"[logical {0}/{1}]{2}".format(tx.logical_date.month, tx.logical_date.day, r.description)
+
+        #if hasattr(tx,"human_date"):
+        #    if tx.human_date:
+        #        diff=(tx.human_date-date).days
+        #        if diff!=0:
+        #            r.description=u"[{0}/{1}]{2}".format(tx.human_date.month, tx.human_date.day, r.description)
+
 
         return r
 

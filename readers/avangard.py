@@ -132,13 +132,7 @@ class AvangardReader:
 
         s_xlsdate=crow[7].value
         report_date_finish=self.str_to_date(s_xlsdate,2000)+timedelta(seconds=-1)+timedelta(hours=23, minutes=59,seconds=59)
-        #crow2=crow
-        #crow=sheet.row(6)
-        #s_xlsdate=crow[28].value
-        #если это текущий месяц, то здесь будет дата окончания периода
-        #если это не текущий период, то даты тут не будет
-        #report_date_finish2=self.str_to_date(s_xlsdate,0)+timedelta(hours=23, minutes=59,seconds=59)
-        
+
         #сканирование авторизованных приходов
         for rowi in range(table1_s,table1_e+1):
             #break
@@ -295,17 +289,47 @@ class AvangardReader:
 
 
 
+    def extract_human_date(self,op):
+        found=False
+        human_date=None
+        pos=op.find(u" от ")
+        if pos>0:
+            fragment=op[pos+4:len(op)]
+            nums=fragment.split(".")
+            if len(nums)>=3:
+                sday=nums[0]
+                smonth=nums[1]
+                syear=nums[2]
+                syear=syear[0:4]
+                if syear[2]==" ":
+                    syear=syear[0:2]
 
+                day=int(sday)
+                month=int(smonth)
+                year=int(syear)
+                if year<2000:
+                    year=year+2000
+                #print u"-{0}.{1}.{2}-".format(sday, smonth, syear)
 
+                human_date=datetime(year,month, day)
+                found=True
+        return found,human_date
 
     def addrec2_1(self,acc,income, time, amount,op,src):
         tx=accounts.Tx(amount,time)
         tx.comment=op
+
+        #if op.find(u" от ")>0:
+        found_human, human_date=self.extract_human_date(op)
+
         tx.src=src
         if income:
             acc.income(tx)
         else:
             acc.out(tx)
+
+        if found_human:
+            tx.human_date=human_date
 
     def parse_private_to(self, acc):
 

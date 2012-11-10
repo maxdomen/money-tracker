@@ -76,11 +76,12 @@ class TCSBankReader:
 
         self.addrec2(acc,txdate,amount_rub,orignum,currency,desc,srcdef )
 
-    def addrec2(self,acc, txdate, amount_rub,amount_orig, currency_orig , desc, srcdef):
+    def addrec2(self,acc, txdate, amount_rub,amount_orig, currency_orig , desc, srcdef, human_date):
 
        
 
         tx=accounts.Tx(amount_rub,txdate)
+        tx.human_date=human_date
 
         tx.original_amount=Money(amount_orig)
         tx.original_currency=currency_orig
@@ -126,8 +127,8 @@ class TCSBankReader:
             acc.out(tx)
         #print tx.verbose(acc.currency)
         return
-    def addrec_2012(self,acc, txdate, amount_rub,amount_orig, currency_orig , desc, srcdef):
-        self.addrec2(acc, txdate, amount_rub,amount_orig, currency_orig , desc, srcdef)
+    def addrec_2012(self,acc, txdate, amount_rub,amount_orig, currency_orig , desc, srcdef,human_date):
+        self.addrec2(acc, txdate, amount_rub,amount_orig, currency_orig , desc, srcdef, human_date)
         return
     def parse2012b_to(self,acc):
         self.parse2012x_to(acc,"cp1251")
@@ -183,7 +184,7 @@ class TCSBankReader:
 
             if len(amount_rub.strip())<1:
                 amount_rub=amount_orig
-            self.addrec_2012(acc,date_of_draw, amount_rub,amount_orig, currency_orig , desc, srcdef)
+            self.addrec_2012(acc,date_of_draw, amount_rub,amount_orig, currency_orig , desc, srcdef,date_of_operation)
 
 
     def parse2011_to(self, acc):

@@ -517,7 +517,9 @@ def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_
             continue
 
 
-        dt=r.get_logical_date()
+        #dt=r.get_logical_date()
+        dt=r.get_human_or_logical_date()
+
 
         if not (dt>=date_start and dt<=date_finish):
             continue
@@ -562,7 +564,9 @@ def details_for_cat(ws,category, rowi, date_start, date_finish):
     subtotal=0
     if hasattr(category, 'txs'):
         for r in category.txs:
-            dt=r.get_logical_date()
+            #dt=r.get_logical_date()
+
+            dt=r.get_human_or_logical_date()
             if not (dt>=date_start and dt<=date_finish):
                 continue
 
@@ -728,18 +732,27 @@ def budget_weekly_planner(wb, caption,d_start, d_finish, plan, clasfctn2, fact):
     table.set_column_width(3, 1)
 
     DestinationXls(table,wb,def_font_height=6)
+#def get_human_date(row):
+#    dt=row.get_logical_date()
+
+
+#    if hasattr(row.tx,"human_date"):
+#        if row.tx.human_date:
+#            dt=row.tx.human_date
+#    return dt
 def budget_weekly_planner_preprocessrows(plan,clasfctn,d_start,d_finish,weeks, isfact):
     for row in plan.Rows:
         if row.type!=RowType.Tx:
             continue
+        dt=row.get_human_or_logical_date()
 
-        if row.date<d_start and row.date>d_finish:
+        if dt<d_start and dt>d_finish:
             continue
         if row.tx.direction==1:
             continue
         for w in weeks:
             #row.tx.
-            dt=row.get_logical_date()
+
             if dt>=w.startday and dt<=w.lastday:
                 g=clasfctn.match_tags_to_category(row.normilized_tags)
                 if not hasattr(g, 'txs'):
@@ -755,7 +768,7 @@ def budget_weekly_planner_cat(table,category, rowi, date_start, date_finish,plan
     isfinhelp=check_classification(category, "fin_help")
     if isfinhelp:
         isfamily=False
-        
+
     startrowi=rowi
     cattitle=category.title
 
@@ -837,9 +850,11 @@ def budget_weekly_planner_cat(table,category, rowi, date_start, date_finish,plan
             rowi+=1
 
     return rowi,outputedrecords
-def budget_weekly_planner_cat_enumrecs(category,plan,table,rowi,date_start, date_finish,weeks):
+
+def budget_weekly_planner_cat_enumrecs_deprecate(category,plan,table,rowi,date_start, date_finish,weeks):
     for row in plan.Rows:
-         dt=row.get_logical_date()
+
+         dt=get_human_date(row)
          if dt<date_start and dt>date_finish:
              continue
          if row.tx.direction==1:
