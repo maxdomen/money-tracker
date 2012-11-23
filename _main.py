@@ -23,6 +23,7 @@ from model.tags import AutoTagger
 from model.printstatement import PrintStatementToExcel2
 from readers.StatementReader import *
 import xlwt
+import common.CalendarHelper
 from  common.Classification import *
 
 #UT
@@ -331,20 +332,14 @@ def homeaccounting(basedir):
     debts.xsl_to(bigpicttable)
     DestinationXls(bigpicttable,wb)
 
-
-    m_t=datetime.now()
-    m_cur_d_start=datetime(m_t.year,m_t.month,1,0,0,0)
-    m_i=m_cur_d_start+timedelta(days=32)
-    m_cur_d_finish=datetime(m_i.year,m_i.month,1,0,0,0)-timedelta(seconds=1)
-    m_t=m_cur_d_start-timedelta(seconds=1)
-    m_prev_d_finish=m_t
-    m_prev_d_start=datetime(m_t.year,m_t.month,1)
+    chelp=common.CalendarHelper.CalendarHelper()
 
 
 
 
-    classify_statement_with_details(clasfctn,statement,wb, "Details_Prev",True, m_prev_d_start,m_prev_d_finish)
-    classify_statement_with_details(clasfctn,statement,wb, "Details_Cur",True, m_cur_d_start,m_cur_d_finish)
+
+    classify_statement_with_details(clasfctn,statement,wb, "Details_Prev",True, chelp.month_prev.start,chelp.month_prev.end)
+    classify_statement_with_details(clasfctn,statement,wb, "Details_Cur",True, chelp.month_cur.start,chelp.month_cur.end)
 
 
 
@@ -353,11 +348,13 @@ def homeaccounting(basedir):
     classify_statement(clasfctn,budgetstatement,wb, "BudgetMonthly")
 
     #budget_weekly_planner(wb,m_cur_d_start,m_cur_d_finish,budgetstatement,clasfctn,statement)
-    budget_weekly_planner(wb,"Weekly_Prev",m_prev_d_start,m_prev_d_finish,budgetstatement,clasfctn,statement)
-    budget_weekly_planner(wb,"Weekly_Cur",m_cur_d_start,m_cur_d_finish,budgetstatement,clasfctn,statement)
+    budget_weekly_planner(wb,"Weekly_Prev",chelp.month_prev.start,chelp.month_prev.end,budgetstatement,clasfctn,statement)
+    budget_weekly_planner(wb,"Weekly_Cur",chelp.month_cur.start,chelp.month_cur.end,budgetstatement,clasfctn,statement)
 
 
     wb.save("test.xls")
+
+
 def relationshipwithcompany(statement,wb,debts):
 
 
