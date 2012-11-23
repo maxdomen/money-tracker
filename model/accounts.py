@@ -202,7 +202,7 @@ class Account:
 
 
         e=self._check_exist(tx)
-        if e:
+        if e and e.src:
             samesrcfile=e.src.filename==tx.src.filename
 
             #добликаты появляются если одна и таже транзакция оказалось в двух разных банковских отчетах
@@ -462,6 +462,25 @@ class Pool:
 
         allrecs_by_id_index={}
 
+        #add transition destinations
+        semi_auto_transitions=[]
+        for trans in self.Transitions:
+            if trans.tx_to_id[0]==">":
+                accname=trans.tx_to_id[1:len(trans.tx_to_id)]
+                print "SemiAuto Destination to", accname
+                for acc in res.Accounts:
+                    if acc.name==accname:
+                        semi_auto_transitions.append((trans,acc))
+                        #print "Found"
+
+                        #tx=accounts.Tx(0,rec_from.tx.time)
+                        #tx=accounts.Tx(0,0)
+
+                        #tx.comment="auto"
+                        #tx.src=None
+                        #acc.income(tx)
+                        #break
+
         for acc in res.Accounts:
             arecs = acc.allrecs()
             for rec in arecs:
@@ -472,7 +491,20 @@ class Pool:
                 else:
                     allrecs.append(rec)
 
+                #if rec.id
 
+        for tx in allrecs:
+            txid=tx.get_id()
+            for trans, trans_acc in  semi_auto_transitions:
+                if trans.tx_from_id==txid:
+                    #print "found"
+                    intx=accounts.Tx(tx._amount,tx.time)
+                    intx.description="[FROM]"+tx.comment
+                    trans_acc.income(intx)
+                    allrecs.append(intx)
+                    trans.tx_to_id=intx.get_id()
+
+                    #tx.account.currency
 
         allrecs.sort(key=lambda x: x.time)
         poolbalance = 0
@@ -603,8 +635,14 @@ class Pool:
                 print mes
                 continue
                 #raise Exception(mes)
-            rec_to=allrecs_by_id_index.get(trans.tx_to_id)
-            if not rec_to:
+
+            rec_to=None
+
+
+
+	    rec_to=allrecs_by_id_index.get(trans.tx_to_id)
+            
+	    if not rec_to:
                 mes="Transition failed, tx_to '{0}' not found".format(trans.tx_to_id)
                 print mes
                 continue

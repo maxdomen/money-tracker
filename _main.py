@@ -374,7 +374,7 @@ def relationshipwithcompany(statement,wb,debts):
     checkpoints.append([datetime(2012,10,1,17),222878, False])
     checkpoints.append([datetime(2012,11,6,16),114975, False]) #Москва ноябрь 2 доп расходы
 
-
+    checkpoints.append([datetime(2012,11,24,17),117097, False])
 
     table=Table("CM and Max")
     table[0,0]=u"Отношения с компанией"

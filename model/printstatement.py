@@ -5,9 +5,9 @@ from accounts import *
 
 #from accounts import RowType
 __author__ = 'Max'
-from django.template import Template, Context
-from django.conf import settings
-import django.template.loader as loader
+#from django.template import Template, Context
+#from django.conf import settings
+#import django.template.loader as loader
 import xlwt
 from currency import Currency
 from datetime import datetime,timedelta

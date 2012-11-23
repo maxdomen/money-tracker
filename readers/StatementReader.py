@@ -7,11 +7,11 @@ from datetime import datetime, timedelta
 import xlrd
 from model import accounts
 import model.accounts
-import pyparsing 
+#import pyparsing 
 
 import os
 import sys
-from pyparsing import Word, alphas
+#from pyparsing import Word, alphas
 #from accounts import *
 from model.currency import Money
 
