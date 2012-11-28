@@ -213,6 +213,8 @@ def tagging(basedir,familypool=None):
     familypool.get_tx_byid("1211900tcs5522.00").slice(u"Гель для душа(x2) и шампунь(x2)",562,[u"хоз"],["food"])
     familypool.get_tx_byid("1211900tcs5522.00").slice(u"Бритвы",345,[u"хоз"],["food"])
     tx=familypool.get_tx_byid("12102500sveta3700.00").set_logical_date(datetime(2012,11,1))
+    tx=familypool.get_tx_byid("12112700sveta3000.00").set_logical_date(datetime(2012,12,1))
+
 
     familypool.get_tx_byid("1211200avr25375.00").set_logical_date(datetime(2012,10,30))
 

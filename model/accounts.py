@@ -467,19 +467,12 @@ class Pool:
         for trans in self.Transitions:
             if trans.tx_to_id[0]==">":
                 accname=trans.tx_to_id[1:len(trans.tx_to_id)]
-                print "SemiAuto Destination to", accname
+                print "SemiAuto Destination to {0} from {1}".format(accname, trans.tx_from_id)
                 for acc in res.Accounts:
                     if acc.name==accname:
                         semi_auto_transitions.append((trans,acc))
-                        #print "Found"
 
-                        #tx=accounts.Tx(0,rec_from.tx.time)
-                        #tx=accounts.Tx(0,0)
 
-                        #tx.comment="auto"
-                        #tx.src=None
-                        #acc.income(tx)
-                        #break
 
         for acc in res.Accounts:
             arecs = acc.allrecs()
@@ -492,17 +485,21 @@ class Pool:
                     allrecs.append(rec)
 
                 #if rec.id
-
+        pseudo_guid=0
         for tx in allrecs:
             txid=tx.get_id()
+
             for trans, trans_acc in  semi_auto_transitions:
                 if trans.tx_from_id==txid:
                     #print "found"
+                    pseudo_guid+=1
                     intx=accounts.Tx(tx._amount,tx.time)
+                    intx.similar=pseudo_guid
                     intx.description="[FROM]"+tx.comment
                     trans_acc.income(intx)
                     allrecs.append(intx)
                     trans.tx_to_id=intx.get_id()
+                    print "SemiAuto Destination Tx {0} created".format(trans.tx_to_id)
 
                     #tx.account.currency
 
