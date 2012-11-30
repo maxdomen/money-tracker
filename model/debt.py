@@ -164,6 +164,7 @@ class BudgetFreq:
 class BudgetBehaviour:
     Std=0
     Expectation=1
+    Done=2
     
 
 class BudgetRow:
@@ -185,9 +186,13 @@ class Budget:
     def __init__(self):
         self.rows=[]
         self.account=Account('budgetacc',rub)
+        self.bying_targets=None
     def Add(self, row):
         self.rows.append(row)
+    def get_buying_targets(self):
+        return self.bying_targets
     def make_statement(self, currency=usd, forNyears=1):
+        self.bying_targets=[]
         start=datetime.now()
         y=start.year
         self._start=datetime(y,1,1)
@@ -206,6 +211,9 @@ class Budget:
 
 
             if budget.period== BudgetFreq.OneTime:
+                if budget.behaviour!=BudgetBehaviour.Done:
+                    if budget.debit>0:
+                        self.bying_targets.append( (budget.exactdate,budget.debit,budget.description) )
                 self.createline(budget, budget.exactdate)
 
             if budget.period== BudgetFreq.Monthly:
@@ -282,7 +290,7 @@ class Budget:
         book = xlrd.open_workbook(filename)
         sheet=book.sheet_by_name(sheetname)
 
-        behavemap={"expectation":BudgetBehaviour.Expectation}
+        behavemap={"expectation":BudgetBehaviour.Expectation, "done":BudgetBehaviour.Done}
 
         periodsmap={"monthly":BudgetFreq.Monthly,"weekly":BudgetFreq.Weekly,"annually": BudgetFreq.Annually,"onetime": BudgetFreq.OneTime, "daily": BudgetFreq.Daily}
         for rowi in range(1,sheet.nrows):

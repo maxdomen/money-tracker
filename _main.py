@@ -221,6 +221,9 @@ def tagging(basedir,familypool=None):
     familypool.get_tx_byid("128100avr23865.00").set_logical_date(datetime(2012,7,30))
     familypool.get_tx_byid("1282120wallet36318.00[1]").set_logical_date(datetime(2012,7,30))
 
+    familypool.get_tx_byid("12111200wallet44625.00[1]").set_logical_date(datetime(2012,10,30))
+
+
 
 
 
@@ -325,7 +328,7 @@ def homeaccounting(basedir):
 
 
 
-    bigpicttable=new_big_picture(wb,clasfctn,statement,budgetstatement)
+    bigpicttable=new_big_picture(wb,clasfctn,statement,budgetstatement, budget.get_buying_targets())
 
 
     classify_statement(clasfctn,statement,wb, "Monthly")
@@ -350,8 +353,8 @@ def homeaccounting(basedir):
     classify_statement(clasfctn,budgetstatement,wb, "BudgetMonthly")
 
     #budget_weekly_planner(wb,m_cur_d_start,m_cur_d_finish,budgetstatement,clasfctn,statement)
-    budget_weekly_planner(wb,"Weekly_Prev",chelp.month_prev.start,chelp.month_prev.end,budgetstatement,clasfctn,statement)
-    budget_weekly_planner(wb,"Weekly_Cur",chelp.month_cur.start,chelp.month_cur.end,budgetstatement,clasfctn,statement)
+    budget_weekly_planner(wb,"Weekly_Prev",chelp.month_prev.start,chelp.month_prev.end,budgetstatement,clasfctn,statement,budget.get_buying_targets())
+    budget_weekly_planner(wb,"Weekly_Cur",chelp.month_cur.start,chelp.month_cur.end,budgetstatement,clasfctn,statement,budget.get_buying_targets())
 
 
     wb.save("test.xls")
@@ -478,22 +481,25 @@ def big_pict_period(table,coli,p,clasfctn,monthlydataset,cummulative):
 
     return cummulative
 
-def new_big_picture(wb,clasfctn,statement,budgetstatement):
+def new_big_picture(wb,clasfctn,statement,budgetstatement,buying_targets):
     monthlydataset=ClassificationDataset(clasfctn,Period.Month, statement)
     budgetmonthlydataset=ClassificationDataset(clasfctn,Period.Month, budgetstatement)
 
     table=Table("Big Picture")
+    table.define_style("redmoney", foreground_color=Color.Red,formatting_style=  Style.Money)
+    table.define_style("blackmoney", foreground_color=Color.Black,formatting_style=  Style.Money)
     table.write_cells_vert(2,0,["family_in","family_out","EBIDTA","cashflow"])
     table[1,2]="test"
     coli=1
     cummulative=0
     dtnow=datetime.now()
+    bt_row=0
     for p in monthlydataset.periods:
 
         if  not (p._end<dtnow):
             break
         cummulative=big_pict_period(table,coli,p,clasfctn,monthlydataset,cummulative)
-
+        bt_row=show_buying_targets(bt_row,p,buying_targets,coli,table, ispast=True)
 
         coli+=1
 
@@ -504,11 +510,28 @@ def new_big_picture(wb,clasfctn,statement,budgetstatement):
             table[0,coli]="Plan Y"+str(p._end.year-2000)
 
         cummulative=big_pict_period(table,coli,p,clasfctn,budgetmonthlydataset,cummulative)
+        bt_row=show_buying_targets(bt_row,p,buying_targets,coli,table, ispast=False)
+
 
         coli+=1
 
     return table
-
+def show_buying_targets(bt_row,p,buying_targets,coli,table, ispast):
+    sum=0.0
+    base=22
+    for bt_date, bt_debit, bt_descr in buying_targets:
+        if bt_date>=p._start and bt_date<=p._end:
+            style="blackmoney"
+            if ispast:
+                style="redmoney"
+            table[base+1+bt_row,coli]=u"{0}({1})".format(bt_descr,bt_debit),style
+            sum+=bt_debit
+            bt_row+=1
+    if bt_row>15:
+        bt_row=0
+    if sum>0:
+        table[base,coli]=sum,Style.Money
+    return bt_row
 
 def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_company_txs, date_start, date_finish):
     for r in statement.Rows:
@@ -633,7 +656,8 @@ def classify_statement(classification,statement,wb, sheetname):
 
 class WeekDef:
     pass
-def budget_weekly_planner(wb, caption,d_start, d_finish, plan, clasfctn2, fact):
+
+def budget_weekly_planner(wb, caption,d_start, d_finish, plan, clasfctn2, fact,buying_targets):
     table=Table(caption)
     table.normal_magn=80
     table.define_style("totals", foreground_color=Color.Red)
@@ -730,15 +754,20 @@ def budget_weekly_planner(wb, caption,d_start, d_finish, plan, clasfctn2, fact):
     table.set_column_width(2, 5)
     table.set_column_width(3, 1)
 
+    table[lastrowi+5,0]=u"Просроченные бюджетные цели"
+    bt_row=0
+    dtnow=datetime.now()
+    sum=0
+    for bt_date, bt_debit, bt_descr in buying_targets:
+        if bt_date<dtnow:
+            table[lastrowi+6+bt_row,2]=bt_date, Style.Month
+            table[lastrowi+6+bt_row,3]=u"{0}({1})".format(bt_descr,bt_debit)
+            sum+=bt_debit
+            bt_row+=1
+    table[lastrowi+5,0]=u"Просроченные бюджетные цели ({0})".format(sum)
+
     DestinationXls(table,wb,def_font_height=6)
-#def get_human_date(row):
-#    dt=row.get_logical_date()
 
-
-#    if hasattr(row.tx,"human_date"):
-#        if row.tx.human_date:
-#            dt=row.tx.human_date
-#    return dt
 def budget_weekly_planner_preprocessrows(plan,clasfctn,d_start,d_finish,weeks, isfact):
     for row in plan.Rows:
         if row.type!=RowType.Tx:
