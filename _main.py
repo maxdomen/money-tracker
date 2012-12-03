@@ -665,6 +665,10 @@ def budget_weekly_planner(wb, caption,d_start, d_finish, plan, clasfctn2, fact,b
     table.define_style("categoryline", bold=True, background_color=Color.LightGreen)
     table.define_style("categoryline_totals", italic=True,background_color=Color.LightGreen, formatting_style=Style.Money)
     table.define_style("item_plan",background_color=Color.LightGray, formatting_style=Style.Money)
+    table.define_style("item_plan_overdue",background_color=Color.Red,foreground_color=Color.LightGray, formatting_style=Style.Money)
+
+
+
     table.define_style("accum",bold=True, formatting_style=Style.Money)
     table.define_style("item_fact", formatting_style=Style.Money)
 
@@ -847,6 +851,9 @@ def budget_weekly_planner_cat(table,category, rowi, date_start, date_finish,plan
                 week.cat_plan_total+=amount
                 cat_plan_total+=amount
                 budget=row.tx.source_budget
+                if hasattr(budget,'isoverdue'):
+                    if budget.isoverdue:
+                        style="item_plan_overdue"
 
 
             table[rowi+trowi,coli]=row.description, style

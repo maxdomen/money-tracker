@@ -168,7 +168,7 @@ class BudgetBehaviour:
     
 
 class BudgetRow:
-    def __init__(self, period, day,debit, credit, currency,tags, description, exactdate=None, behaviour=None):
+    def __init__(self, period, day,debit, credit, currency,tags, description, saccomplished="",exactdate=None, behaviour=None):
         self.period=period
         self.day=day
         self.debit=debit
@@ -182,6 +182,15 @@ class BudgetRow:
         self.behaviour=BudgetBehaviour.Std
         if behaviour:
             self.behaviour=behaviour
+
+        self.accomplished_periods=[]
+        if isinstance(saccomplished, float):
+            self.accomplished_periods.append(int(saccomplished))
+        else:
+            if len(saccomplished)>0:
+                lt=saccomplished.split(',')
+                for t in lt:
+                    self.accomplished_periods.append(int(t))
 class Budget:
     def __init__(self):
         self.rows=[]
@@ -208,12 +217,22 @@ class Budget:
                     dt=datetime(self._start.year+year_repeater,budget.exactdate.month,budget.exactdate.day )
                     self.createline(budget, dt)
 
-
+                if budget.behaviour!=BudgetBehaviour.Expectation:
+                    is_this_year_accomplished=False
+                    current_period=start.year
+                    for y in budget.accomplished_periods:
+                        if y==current_period:
+                            is_this_year_accomplished=True
+                            break
+                    if not is_this_year_accomplished:
+                        self.bying_targets.append( (budget.exactdate,budget.debit,budget.description) )
+                        budget.isoverdue=True
 
             if budget.period== BudgetFreq.OneTime:
                 if budget.behaviour!=BudgetBehaviour.Done:
                     if budget.debit>0:
                         self.bying_targets.append( (budget.exactdate,budget.debit,budget.description) )
+                        budget.isoverdue=True
                 self.createline(budget, budget.exactdate)
 
             if budget.period== BudgetFreq.Monthly:
@@ -313,7 +332,9 @@ class Budget:
             behave=BudgetBehaviour.Std
             if len(sbehave)>0:
                 behave=behavemap[sbehave]
-
+            saccomplished=""
+            if len(r)>11:
+                saccomplished=r[11].value
 
             tags=r[6].value.split(',')
             etags=[]
@@ -338,7 +359,14 @@ class Budget:
             if not isinstance(debit, float): debit=0
             credit=r[4].value
             if not isinstance(credit, float): credit=0
-            br=BudgetRow(period,day, debit,credit,currency,tags,r[5].value,exactdate=exactdate,behaviour=behave)
+            descr=r[5].value
+            if period==BudgetFreq.OneTime:
+                if not exactdate:
+                    mes=u"Exact date for budget line '{0}' missed".format(descr)
+                    print mes
+                    raise Exception(mes)
+
+            br=BudgetRow(period,day, debit,credit,currency,tags,descr,saccomplished,exactdate=exactdate,behaviour=behave)
             self.Add(br)
 
 
