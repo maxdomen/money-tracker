@@ -209,9 +209,7 @@ def tagging(basedir,familypool=None):
 
     #nov
 
-    familypool.get_tx_byid("1211900tcs5522.00").slice(u"Вино 6 бутылок",1834,[u"спиртное"],["food"])
-    familypool.get_tx_byid("1211900tcs5522.00").slice(u"Гель для душа(x2) и шампунь(x2)",562,[u"хоз"],["food"])
-    familypool.get_tx_byid("1211900tcs5522.00").slice(u"Бритвы",345,[u"хоз"],["food"])
+    #familypool.get_tx_byid("1211900tcs5522.00").slice(u"Вино 6 бутылок",1834,[u"спиртное"],["food"])
     tx=familypool.get_tx_byid("12102500sveta3700.00").set_logical_date(datetime(2012,11,1))
     tx=familypool.get_tx_byid("12112700sveta3000.00").set_logical_date(datetime(2012,12,1))
 
@@ -221,13 +219,39 @@ def tagging(basedir,familypool=None):
     familypool.get_tx_byid("128100avr23865.00").set_logical_date(datetime(2012,7,30))
     familypool.get_tx_byid("1282120wallet36318.00[1]").set_logical_date(datetime(2012,7,30))
 
-    familypool.get_tx_byid("12111200wallet44625.00[1]").set_logical_date(datetime(2012,10,30))
+    #familypool.get_tx_byid("12111200wallet44625.00[1]").set_logical_date(datetime(2012,10,30))
 
 
+    #familypool.get_tx_byid("1211900tcs5522.00").slice(u"Вино 6 бутылок",1834,[u"спиртное"],["food"])
+    load_slices(familypool,basedir+"home/2012/2012 logs and cash.xls","Slices")
+def load_slices(pool,filename,sheetname):
 
+    book = xlrd.open_workbook(filename)
+    sheet=book.sheet_by_name(sheetname)
+    slicescount=0
+    logicaldatecount=0
+    for rowi in range(1,sheet.nrows):
+        r=sheet.row(rowi)
+        txid=r[1].value
+        logical_date=r[6].value
+        if isinstance(logical_date, float):
+            tdate=xlrd.xldate_as_tuple(logical_date,0)
+            res=datetime(tdate[0],tdate[1],tdate[2])
+            pool.get_tx_byid(txid).set_logical_date(res)
+            logicaldatecount+=1
+        else:
+            comment=r[2].value
+            amount=r[3].value
+            tags_add=[]
+            tags_remove=[]
+            TagTools.ConvertStringOfTagsToList(tags_add,r[4].value)
+            TagTools.ConvertStringOfTagsToList(tags_remove,r[5].value)
+            tx=pool.get_tx_byid(txid)
+            if tx:
+                tx.slice(comment,amount,tags_add,tags_remove)
+            slicescount+=1
 
-
-
+    print "{0} slices added, {1} logical dates".format(slicescount,logicaldatecount)
 def homeaccounting(basedir):
     loadrates()
 
