@@ -2,6 +2,7 @@
 import cProfile
 from common.Classification import Classification, ClassificationDataset, ClassificationPrinter, Period
 from common.Table import Table, Style, Color,DestinationXls
+import common.CalendarHelper
 from model import debt
 import copy
 
@@ -128,6 +129,8 @@ def parsing(basedir,avr,avu,avs,tcs,boa,wallet,safe, sveta, budget):
     budget.read(basedir+'home/2012/2012 logs and cash.xls','Budget')
     budget.read(basedir+'home/2012/2012 sveta.xlsx','Plan')
 
+    budget.read_executions(basedir+'home/2012/2012 logs and cash.xls','Budget-Execution')
+    budget.read_executions(basedir+'home/2012/2012 sveta.xlsx','Budget-Execution')
 #FP=None
 def tagging(basedir,familypool=None):
     print "Tagging"
@@ -361,14 +364,14 @@ def homeaccounting(basedir):
     debts.xsl_to(bigpicttable)
     DestinationXls(bigpicttable,wb)
 
-    chelp=common.CalendarHelper.CalendarHelper()
+    #chelp=common.CalendarHelper.CalendarHelper()
 
 
 
 
 
-    classify_statement_with_details(clasfctn,statement,wb, "Details_Prev",True, chelp.month_prev.start,chelp.month_prev.end)
-    classify_statement_with_details(clasfctn,statement,wb, "Details_Cur",True, chelp.month_cur.start,chelp.month_cur.end)
+    classify_statement_with_details(clasfctn,statement,wb, "Details_Prev",True, common.CalendarHelper.month_prev())
+    classify_statement_with_details(clasfctn,statement,wb, "Details_Cur",True, common.CalendarHelper.month_current())
 
 
 
@@ -377,8 +380,8 @@ def homeaccounting(basedir):
     classify_statement(clasfctn,budgetstatement,wb, "BudgetMonthly")
 
     #budget_weekly_planner(wb,m_cur_d_start,m_cur_d_finish,budgetstatement,clasfctn,statement)
-    budget_weekly_planner(wb,"Weekly_Prev",chelp.month_prev.start,chelp.month_prev.end,budgetstatement,clasfctn,statement,budget.get_buying_targets())
-    budget_weekly_planner(wb,"Weekly_Cur",chelp.month_cur.start,chelp.month_cur.end,budgetstatement,clasfctn,statement,budget.get_buying_targets())
+    budget_weekly_planner(wb,"Weekly_Prev",common.CalendarHelper.month_prev(),budgetstatement,clasfctn,statement,budget)
+    budget_weekly_planner(wb,"Weekly_Cur",common.CalendarHelper.month_current(),budgetstatement,clasfctn,statement,budget)
 
 
     wb.save("test.xls")
@@ -557,7 +560,7 @@ def show_buying_targets(bt_row,p,buying_targets,coli,table, ispast):
         table[base,coli]=sum,Style.Money
     return bt_row
 
-def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_company_txs, date_start, date_finish):
+def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_company_txs, p):
     for r in statement.Rows:
         if r.type!=RowType.Tx:
             continue
@@ -567,7 +570,7 @@ def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_
         dt=r.get_human_or_logical_date()
 
 
-        if not (dt>=date_start and dt<=date_finish):
+        if not (dt>=p.start and dt<=p.end):
             continue
 
         g=clasfctn.match_tags_to_category(r.normilized_tags)
@@ -586,7 +589,7 @@ def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_
     #rowi=0
 
 
-    details_for_cat(ws,clasfctn._root,0, date_start, date_finish)
+    details_for_cat(ws,clasfctn._root,0, p.start, p.end)
 
 
 def build_category_path(category):
@@ -681,7 +684,7 @@ def classify_statement(classification,statement,wb, sheetname):
 class WeekDef:
     pass
 
-def budget_weekly_planner(wb, caption,d_start, d_finish, plan, clasfctn2, fact,buying_targets):
+def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
     table=Table(caption)
     table.normal_magn=80
     table.define_style("totals", foreground_color=Color.Red)
@@ -701,12 +704,12 @@ def budget_weekly_planner(wb, caption,d_start, d_finish, plan, clasfctn2, fact,b
     weeks=[]
     w=WeekDef()
     weeks.append(w)
-    t=d_start
+    t=period.start
     w.startday=t
     w.windex=0
     w.plan_total=0
     w.fact_total=0
-    while t<d_finish:
+    while t<period.end:
         w.lastday=t
         if t.weekday()==6:
             i=w.windex
@@ -733,10 +736,10 @@ def budget_weekly_planner(wb, caption,d_start, d_finish, plan, clasfctn2, fact,b
 
                 #print w.windex, g.title,row.description, row.amount
 
-    budget_weekly_planner_preprocessrows(plan,clasfctn,d_start,d_finish,weeks,False)
-    budget_weekly_planner_preprocessrows(fact,clasfctn,d_start,d_finish,weeks, True)
+    budget_weekly_planner_preprocessrows(plan,clasfctn,period,weeks,False)
+    budget_weekly_planner_preprocessrows(fact,clasfctn,period,weeks, True)
 
-    lastrowi,outputedrecords=budget_weekly_planner_cat(table,clasfctn._root,6,  d_start, d_finish,plan,weeks)
+    lastrowi,outputedrecords=budget_weekly_planner_cat(table,clasfctn._root,6,  period,plan,weeks,budget)
     plan_total=0
     fact_total=0
     prediction_total=0
@@ -768,7 +771,7 @@ def budget_weekly_planner(wb, caption,d_start, d_finish, plan, clasfctn2, fact,b
         table.set_column_width(w.coli+3, 5)
         table.set_column_width(w.coli+4, 1)
 
-    mtitle="{0} {1}".format(d_start.strftime("%B"),d_start.year)
+    mtitle="{0} {1}".format(period.start.strftime("%B"),period.start.year)
     table[0,0]=mtitle
     table[0,weeks[3].coli]=mtitle
     table[3,1]=u"План"
@@ -786,7 +789,7 @@ def budget_weekly_planner(wb, caption,d_start, d_finish, plan, clasfctn2, fact,b
     bt_row=0
     dtnow=datetime.now()
     sum=0
-    for bt_date, bt_debit, bt_descr in buying_targets:
+    for bt_date, bt_debit, bt_descr in budget.get_buying_targets():
         if bt_date<dtnow:
             table[lastrowi+6+bt_row,2]=bt_date, Style.Month
             table[lastrowi+6+bt_row,3]=u"{0}({1})".format(bt_descr,bt_debit)
@@ -796,13 +799,13 @@ def budget_weekly_planner(wb, caption,d_start, d_finish, plan, clasfctn2, fact,b
 
     DestinationXls(table,wb,def_font_height=6)
 
-def budget_weekly_planner_preprocessrows(plan,clasfctn,d_start,d_finish,weeks, isfact):
+def budget_weekly_planner_preprocessrows(plan,clasfctn,period,weeks, isfact):
     for row in plan.Rows:
         if row.type!=RowType.Tx:
             continue
         dt=row.get_human_or_logical_date()
 
-        if dt<d_start and dt>d_finish:
+        if dt<period.start and dt>period.end:
             continue
         if row.tx.direction==1:
             continue
@@ -817,7 +820,7 @@ def budget_weekly_planner_preprocessrows(plan,clasfctn,d_start,d_finish,weeks, i
                 row.weekindex=w.windex
                 row.palanner_isfact=isfact
 
-def budget_weekly_planner_cat(table,category, rowi, date_start, date_finish,plan,weeks):
+def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def):
 
 
     isfamily=check_classification(category, "family_out")
@@ -863,6 +866,7 @@ def budget_weekly_planner_cat(table,category, rowi, date_start, date_finish,plan
             #print category.title,row.weekindex,trowi, row.description, row.amount
             amount=row.amount.as_float()
 
+            descr=row.description
             style="item_plan"
             if row.palanner_isfact:
                 coli+=2
@@ -879,8 +883,11 @@ def budget_weekly_planner_cat(table,category, rowi, date_start, date_finish,plan
                     if budget.isoverdue:
                         style="item_plan_overdue"
 
+                if budget_def.check_is_executed(budget,period.start):
+                    descr="[+]"+descr
 
-            table[rowi+trowi,coli]=row.description, style
+
+            table[rowi+trowi,coli]=descr, style
             table[rowi+trowi,coli+1]=amount,style
 
             if rowi+trowi>maxtrow:
@@ -903,25 +910,26 @@ def budget_weekly_planner_cat(table,category, rowi, date_start, date_finish,plan
             table[startrowi,w.coli+3]=w.cat_fact_total,"categoryline_totals"
 
     for c in category.childs:
-        rowi, child_outputedrecords=budget_weekly_planner_cat(table,c, rowi,date_start, date_finish,plan,weeks)
+        rowi, child_outputedrecords=budget_weekly_planner_cat(table,c, rowi,period,plan,weeks, budget_def)
         outputedrecords+=child_outputedrecords
         if outputedrecords>0:
             rowi+=1
 
     return rowi,outputedrecords
 
-def budget_weekly_planner_cat_enumrecs_deprecate(category,plan,table,rowi,date_start, date_finish,weeks):
-    for row in plan.Rows:
+#def budget_weekly_planner_cat_enumrecs_deprecate(category,plan,table,rowi,date_start, date_finish,weeks):
+#    for row in plan.Rows:
+# #
 
-         dt=get_human_date(row)
-         if dt<date_start and dt>date_finish:
-             continue
-         if row.tx.direction==1:
-             continue
-         for w in weeks:
-             if dt>=w.startday and dt<=w.lastday:
-                 print w.windex, row.description, row.amount
-    return rowi
+#         dt=get_human_date(row)
+#         if dt<date_start and dt>date_finish:
+#             continue
+#         if row.tx.direction==1:
+#             continue
+#         for w in weeks:
+#             if dt>=w.startday and dt<=w.lastday:
+#                 print w.windex, row.description, row.amount
+#    return rowi
 
 #corpaccounting()
 homeaccounting("../money-data/")

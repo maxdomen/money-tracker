@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 #from decimal import Decimal
 import xlrd
 #from StatementReader import TxSource
+import common.CalendarHelper
 from accounts import Statement, StatementRow, RowType, Account, Tx, Pool
 #from aggregatereport import Period
 from common.Classification import Period, TagTools
@@ -168,7 +169,7 @@ class BudgetBehaviour:
     
 
 class BudgetRow:
-    def __init__(self, period, day,debit, credit, currency,tags, description, saccomplished="",exactdate=None, behaviour=None):
+    def __init__(self, period, day,debit, credit, currency,tags, description, id,saccomplished="",exactdate=None, behaviour=None):
         self.period=period
         self.day=day
         self.debit=debit
@@ -176,6 +177,7 @@ class BudgetRow:
         self.currency=currency
         self.tags=tags
         self.description=description
+        self.id=id
         self.exactdate=exactdate
         self.start=None
         self.end=None
@@ -196,10 +198,46 @@ class Budget:
         self.rows=[]
         self.account=Account('budgetacc',rub)
         self.bying_targets=None
+        self.executions=[]
     def Add(self, row):
         self.rows.append(row)
     def get_buying_targets(self):
         return self.bying_targets
+    def check_is_executed(self,budget_item,date):
+        res=False
+
+        if budget_item.behaviour==BudgetBehaviour.Done:
+            return True
+
+        if len(budget_item.id)<1:
+            return False
+
+        p=None
+        if budget_item.period== BudgetFreq.Annually:
+            p=common.CalendarHelper.Period(datetime(date.year,1,1),datetime(date.year,12,31,23,59,59))
+        if budget_item.period== BudgetFreq.OneTime:
+            #p=common.CalendarHelper.Period(datetime(date.year,date.month, date.day),datetime(date.year,date.month, date.day, 23,59,59))
+            p=common.CalendarHelper.Period(datetime(2000,1,1),datetime(3000,1,1))
+        if budget_item.period== BudgetFreq.Monthly:
+            s=datetime(date.year,date.month,1)
+
+            if date.month+1>12:
+                e=datetime(date.year+1,1,1)-timedelta(seconds=1)
+            else:
+                e=datetime(date.year,date.month+1,1)-timedelta(seconds=1)
+            p=common.CalendarHelper.Period(s,e)
+
+        if not p:
+            return False
+
+        for eid, edate in self.executions:
+            if eid!=budget_item.id:
+                continue
+            if edate>=p.start and edate<=p.end:
+                res=True
+                break
+
+        return res
     def make_statement(self, currency=usd, forNyears=1):
         self.bying_targets=[]
         start=datetime.now()
@@ -304,6 +342,18 @@ class Budget:
              tdate=xlrd.xldate_as_tuple(xslsvalue,0)
              res=datetime(tdate[0],tdate[1],tdate[2])
         return res
+    def read_executions(self,filename, sheetname):
+        book = xlrd.open_workbook(filename)
+        sheet=book.sheet_by_name(sheetname)
+
+        for rowi in range(1,sheet.nrows):
+            r=sheet.row(rowi)
+            sid=r[1].value.lower()
+            if len(sid)>0:
+                xlsdate=r[2].value
+                tdate=xlrd.xldate_as_tuple(xlsdate,0)
+                exactdate=datetime(tdate[0],tdate[1],tdate[2])
+                self.executions.append( (sid,exactdate) )
     def read(self, filename, sheetname):
         print "  budget",filename
         book = xlrd.open_workbook(filename)
@@ -365,8 +415,8 @@ class Budget:
                     mes=u"Exact date for budget line '{0}' missed".format(descr)
                     print mes
                     raise Exception(mes)
-
-            br=BudgetRow(period,day, debit,credit,currency,tags,descr,saccomplished,exactdate=exactdate,behaviour=behave)
+            id=r[0].value
+            br=BudgetRow(period,day, debit,credit,currency,tags,descr,id,saccomplished,exactdate=exactdate,behaviour=behave)
             self.Add(br)
 
 
