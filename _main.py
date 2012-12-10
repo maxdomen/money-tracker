@@ -379,10 +379,10 @@ def homeaccounting(basedir):
     clasfctn=load_and_organize_classfication(basedir,statement, True)
     classify_statement(clasfctn,budgetstatement,wb, "BudgetMonthly")
 
-    #budget_weekly_planner(wb,m_cur_d_start,m_cur_d_finish,budgetstatement,clasfctn,statement)
+
     budget_weekly_planner(wb,"Weekly_Prev",common.CalendarHelper.month_prev(),budgetstatement,clasfctn,statement,budget)
     budget_weekly_planner(wb,"Weekly_Cur",common.CalendarHelper.month_current(),budgetstatement,clasfctn,statement,budget)
-
+    budget_weekly_planner(wb,"Weekly_Next",common.CalendarHelper.month_next(),budgetstatement,clasfctn,statement,budget)
 
     wb.save("test.xls")
 
@@ -552,15 +552,24 @@ def show_buying_targets(bt_row,p,budget,coli,table, ispast):
     base=22
     now=datetime.now()
     for budget_item in budget.get_buying_targets():
+        if not budget_item.exactdate:
+            continue
         if budget_item.exactdate>=p._start and budget_item.exactdate<=p._end:
-
-            is_executed=budget.check_is_executed(budget_item,now)
-            #if not is_executed:
+            is_show=False
+            is_overdue, is_executed, is_todo=budget.check_item_execution(budget_item,now)
+            print p._start ,budget_item.description,is_overdue, is_executed, is_todo
             style="blackmoney"
-            if ispast:
-                style="redmoney"
-            if (ispast and (not is_executed)) or (not ispast):
-                table[base+1+bt_row,coli]=u"{0}({1})".format(budget_item.description,budget_item.debit),style
+
+            if is_overdue:
+                is_show=True
+            if budget_item.period== model.debt.BudgetFreq.OneTime or budget_item.period== model.debt.BudgetFreq.Annually:
+                if (not is_executed):
+                    is_show=True
+
+            if is_show:
+                descr=budget_item.description
+
+                table[base+1+bt_row,coli]=u"{0}({1})".format(descr,budget_item.debit),style
                 sum+=budget_item.debit
                 bt_row+=1
     if bt_row>15:
@@ -709,7 +718,7 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
     table.define_style("categoryline", bold=True, background_color=Color.LightGreen)
     table.define_style("categoryline_totals", italic=True,background_color=Color.LightGreen, formatting_style=Style.Money)
     table.define_style("item_plan",background_color=Color.LightGray, formatting_style=Style.Money)
-    table.define_style("item_plan_overdue",background_color=Color.Red,foreground_color=Color.LightGray, formatting_style=Style.Money)
+    table.define_style("item_plan_overdue",background_color=Color.Red,foreground_color=Color.White, formatting_style=Style.Money)
 
 
 
@@ -750,7 +759,15 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
     budget_weekly_planner_preprocessrows(plan,clasfctn,period,weeks,False)
     budget_weekly_planner_preprocessrows(fact,clasfctn,period,weeks, True)
 
-    lastrowi,outputedrecords=budget_weekly_planner_cat(table,clasfctn._root,6,  period,plan,weeks,budget)
+
+    now=datetime.now()
+    duedate=now
+    if now>period.end:
+        duedate=period.end
+    if now<period.start:
+        duedate=period.start
+
+    lastrowi,outputedrecords=budget_weekly_planner_cat(table,clasfctn._root,6,  period,plan,weeks,budget,duedate)
     plan_total=0
     fact_total=0
     prediction_total=0
@@ -804,15 +821,23 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
 
     table[lastrowi+5,0]=u"Просроченные бюджетные цели"
     bt_row=0
-    dtnow=datetime.now()
+    #dtnow=datetime.now()
+
+    #now=datetime.now()
+    #duedate=now
+    #if duedate>period.end:
+    #    duedate=period.end
+
     sum=0
     for budget_item in budget.get_buying_targets():
-        if budget_item.exactdate<dtnow:
 
-            is_executed=budget.check_is_executed(budget_item,dtnow )
-            if not is_executed:
-                table[lastrowi+6+bt_row,2]=budget_item.exactdate, Style.Month
-                table[lastrowi+6+bt_row,3]=u"{0}({1})".format(budget_item.description,budget_item.debit)
+        is_overdue, is_executed, is_todo=budget.check_item_execution(budget_item,duedate)
+        if is_overdue:
+                table[lastrowi+6+bt_row,2]="", Style.Month
+                descr=budget_item.description
+                if hasattr(budget_item,"_description"):
+                    descr= budget_item._description
+                table[lastrowi+6+bt_row,3]=u"{0}({1})".format(descr,budget_item.debit)
                 sum+=budget_item.debit
                 bt_row+=1
     table[lastrowi+5,0]=u"Просроченные бюджетные цели ({0})".format(sum)
@@ -820,12 +845,12 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
 
     bt_row=1
     sum=0
-    table[lastrowi,0]=u"Бюджетные цели в этом месяце"
+    table[lastrowi,0]=u"Бюджетные цели в ближайшие 30 дней"
     for budget_item in budget.get_buying_targets():
-        if budget_item.exactdate>=dtnow and budget_item.exactdate<period.end:
+        is_overdue, is_executed, is_todo=budget.check_item_execution(budget_item,duedate)
 
-            is_executed=budget.check_is_executed(budget_item,dtnow )
-            if not is_executed:
+        if is_todo:
+            if budget_item.exactdate<period.end:
                 table[lastrowi+bt_row,2]=budget_item.exactdate, Style.Month
                 table[lastrowi+bt_row,3]=u"{0}({1})".format(budget_item.description,budget_item.debit)
                 sum+=budget_item.debit
@@ -856,7 +881,7 @@ def budget_weekly_planner_preprocessrows(plan,clasfctn,period,weeks, isfact):
                 row.weekindex=w.windex
                 row.palanner_isfact=isfact
 
-def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def):
+def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def, duedate):
 
 
     isfamily=check_classification(category, "family_out")
@@ -889,6 +914,7 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
     cat_plan_total=0
     cat_fact_total=0
     cat_predict_total=0
+
 
     #все тразакции данной категории
     if hasattr(category, 'txs') and isfamily:
@@ -930,18 +956,14 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
                 week.cat_plan_total+=amount
                 cat_plan_total+=amount
                 budget=row.tx.source_budget
-                is_executed=budget_def.check_is_executed(budget,period.start)
 
-
-                is_overdue=False
-                if hasattr(budget,'isoverdue'):
-                    if budget.isoverdue and budget.exactdate<dtnow:
-                        is_overdue=True
-
+                if descr.find(u"ртпла")>0:
+                    print "ртпла"
+                is_overdue, is_executed, is_todo=budget_def.check_item_execution(budget,duedate)
 
                 if is_executed:
-                    is_overdue=False
                     descr="[+]"+descr
+
                 if is_overdue:
                     style="item_plan_overdue"
                     descr="[!]"+descr
@@ -975,7 +997,7 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
             table[startrowi,w.coli+3]=w.cat_fact_total,"categoryline_totals"
 
     for c in category.childs:
-        rowi, child_outputedrecords=budget_weekly_planner_cat(table,c, rowi,period,plan,weeks, budget_def)
+        rowi, child_outputedrecords=budget_weekly_planner_cat(table,c, rowi,period,plan,weeks, budget_def,duedate)
         outputedrecords+=child_outputedrecords
         if outputedrecords>0:
             rowi+=1

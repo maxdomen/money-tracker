@@ -187,14 +187,14 @@ class BudgetRow:
         if behaviour:
             self.behaviour=behaviour
 
-        self.accomplished_periods=[]
-        if isinstance(saccomplished, float):
-            self.accomplished_periods.append(int(saccomplished))
-        else:
-            if len(saccomplished)>0:
-                lt=saccomplished.split(',')
-                for t in lt:
-                    self.accomplished_periods.append(int(t))
+        #self.accomplished_periods=[]
+        #if isinstance(saccomplished, float):
+        #    self.accomplished_periods.append(int(saccomplished))
+        #else:
+        #    if len(saccomplished)>0:
+        #        lt=saccomplished.split(',')
+        #        for t in lt:
+        #            self.accomplished_periods.append(int(t))
 class Budget:
     def __init__(self):
         self.rows=[]
@@ -205,7 +205,28 @@ class Budget:
         self.rows.append(row)
     def get_buying_targets(self):
         return self.bying_targets
-    def check_is_executed(self,budget_item,date):
+
+    def check_item_execution(self,budget_item, foradate):
+        is_todo=False
+        is_overdue=False
+        is_executed=self._check_is_executed(budget_item,foradate)
+        if not is_executed:
+            is_overdue=self._is_item_overdue(budget_item, foradate)
+
+        if budget_item.exactdate and budget_item.debit>0:
+            if (not is_overdue) and (not is_executed):
+                if budget_item.exactdate>=foradate:
+                    diff=budget_item.exactdate- foradate
+                    if diff.days<31:
+                        is_todo=True
+
+                    if budget_item.period!=BudgetFreq.OneTime:
+                        if budget_item.debit<2000:
+                            is_todo=False
+
+        return is_overdue, is_executed, is_todo
+
+    def _check_is_executed(self,budget_item,date):
         res=False
 
         if budget_item.behaviour==BudgetBehaviour.Done:
@@ -216,18 +237,20 @@ class Budget:
 
         p=None
         if budget_item.period== BudgetFreq.Annually:
-            p=common.CalendarHelper.Period(datetime(date.year,1,1),datetime(date.year,12,31,23,59,59))
+           # p=common.CalendarHelper.Period(datetime(date.year,1,1),datetime(date.year,12,31,23,59,59))
+            p=common.CalendarHelper.Period(datetime(budget_item.exactdate.year,1,1),datetime(budget_item.exactdate.year,12,31,23,59,59))
         if budget_item.period== BudgetFreq.OneTime:
             #p=common.CalendarHelper.Period(datetime(date.year,date.month, date.day),datetime(date.year,date.month, date.day, 23,59,59))
             p=common.CalendarHelper.Period(datetime(2000,1,1),datetime(3000,1,1))
         if budget_item.period== BudgetFreq.Monthly:
-            s=datetime(date.year,date.month,1)
+            if budget_item.exactdate:
+                s=datetime(budget_item.exactdate.year,budget_item.exactdate.month,1)
 
-            if date.month+1>12:
-                e=datetime(date.year+1,1,1)-timedelta(seconds=1)
-            else:
-                e=datetime(date.year,date.month+1,1)-timedelta(seconds=1)
-            p=common.CalendarHelper.Period(s,e)
+                if s.month+1>12:
+                    e=datetime(s.year+1,1,1)-timedelta(seconds=1)
+                else:
+                    e=datetime(s.year,s.month+1,1)-timedelta(seconds=1)
+                p=common.CalendarHelper.Period(s,e)
 
         if not p:
             return False
@@ -240,6 +263,52 @@ class Budget:
                 break
 
         return res
+    def _is_item_overdue(self, budget_item, foradate):
+
+        if budget_item.debit<1:
+            return False
+
+        if budget_item.behaviour==BudgetBehaviour.Expectation:
+            return False
+
+        item_date=budget_item.exactdate
+        if not item_date:
+
+            if budget_item.period==BudgetFreq.Monthly:
+                day=1
+                if budget_item.day!=0:
+                    day=budget_item.day
+                item_date=datetime(foradate.year, foradate.month,day)
+
+            if not item_date:
+                return False
+
+        if item_date<foradate:
+
+            #фильтруем шум периодических расходов
+            if budget_item.period!=BudgetFreq.OneTime:
+                diff=foradate-item_date
+                if diff.days>30:
+                    return False
+                if budget_item.debit<2000:
+                    return False
+            #фильтруем end
+            return True
+        return False
+    def create_buying_target(self, srcitem, dt):
+        if not self.in_time_limit(srcitem, dt):
+            return srcitem
+        budget2=srcitem
+        if srcitem.behaviour!=BudgetBehaviour.Expectation:
+            budget2=copy.copy(srcitem)
+            #budget2._description=budget2.description
+            budget2._description=budget2.description+"({0})".format(dt.year)
+            if budget2.period== BudgetFreq.Monthly:
+                budget2._description=budget2.description+"({0}-{1})".format(dt.year,dt.month)
+            budget2.id=budget2.description.lower()
+            budget2.exactdate=dt
+            self.bying_targets.append(budget2)
+        return budget2
     def make_statement(self, currency=usd, forNyears=1):
         self.bying_targets=[]
         start=datetime.now()
@@ -255,20 +324,10 @@ class Budget:
             if budget.period== BudgetFreq.Annually:
                 for year_repeater in range(0,forNyears):
                     dt=datetime(self._start.year+year_repeater,budget.exactdate.month,budget.exactdate.day )
-                    self.createline(budget, dt)
 
-                if budget.behaviour!=BudgetBehaviour.Expectation:
-                    #is_this_year_accomplished=False
-                    #current_period=start.year
-                    #for y in budget.accomplished_periods:
-                    #    if y==current_period:
-                    #        is_this_year_accomplished=True
-                    #        break
-                    #if not is_this_year_accomplished:
-                    #    self.bying_targets.append( (budget.exactdate,budget.debit,budget.description) )
-                    #    budget.isoverdue=True
-                    self.bying_targets.append(budget)
-                    #budget.isoverdue=True
+                    bcopy=self.create_buying_target(budget, dt)
+                    self.createline(bcopy, dt)
+
 
             if budget.period== BudgetFreq.OneTime:
                 if budget.behaviour!=BudgetBehaviour.Done:
@@ -278,13 +337,20 @@ class Budget:
                 self.createline(budget, budget.exactdate)
 
             if budget.period== BudgetFreq.Monthly:
+                #self.bying_targets.append(budget)
                 for year_repeater in range(0,forNyears):
                     day=1
                     if budget.day!=0:
                         day=budget.day
                     for mo in range(1,13):
                         date=datetime(self._start.year+year_repeater, mo,day)
-                        self.createline(budget, date)
+
+
+                        if budget.description.find(u"ртпла")>0:
+                            print "ртпла"
+                        bcopy=self.create_buying_target(budget, date)
+                        self.createline(bcopy, date)
+
 
             if budget.period==BudgetFreq.Daily:
                 cur=self._start
@@ -313,15 +379,19 @@ class Budget:
         p.link_account(self.account)
         res=p.make_statement(currency)
         return res
-    def createline(self, budget, date):
-
+    def in_time_limit(self,budget,date):
         if budget.start:
             if date<budget.start:
-                return
+                return False
 
         if budget.end:
             if date>budget.end:
-                return
+                return False
+        return True
+    def createline(self, budget, date):
+        if not self.in_time_limit(budget, date):
+            return
+
         amnt=budget.debit
         if budget.credit>0:
             amnt=budget.credit
@@ -362,6 +432,7 @@ class Budget:
         print "  budget",filename
         book = xlrd.open_workbook(filename)
         sheet=book.sheet_by_name(sheetname)
+                    #expectation
 
         behavemap={"expectation":BudgetBehaviour.Expectation, "done":BudgetBehaviour.Done}
 

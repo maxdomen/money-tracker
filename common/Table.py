@@ -113,17 +113,20 @@ class Color:
     Red=64
     Gray=128
     LightGray=129
+    White=130
 
     @staticmethod
     def to_xls_color_index(src):
         colors={}
         colors[Color.NoColor]=0
         colors[Color.Black]=0x08
-        colors[Color.Green]=0x3A
+        colors[Color.Green]=0x11
         colors[Color.LightGreen]=0x2A
-        colors[Color.Red]=0x10
+        colors[Color.Red]=0x0A
         colors[Color.Gray]=0x17
         colors[Color.LightGray]=0x16
+        colors[Color.White]=0x09
+
         return colors[src]
 
 class Table:
