@@ -6,31 +6,31 @@ import xlwt
 
 class DestinationXls:
     def __init__(self,table,wb, def_font_height=None):
+
         self.wb=wb
+        ownedfile=False
+        if isinstance(wb,str):
+            self.wb_filename=self.wb
+            self.wb=xlwt.Workbook()
+            ownedfile=True
+
         self.table=table
 
         self._style_defs={}
-        #self._style_defs.
-        #self._default_style=xlwt.easyxf()
-        self._style_defs[Style.Text]= xlwt.easyxf()
-        #self._style_defs[Style.Text+Style.Gray]= xlwt.easyxf('font: color-index gray50')
-        #self._style_defs[Style.Text+Style.Bold]= xlwt.easyxf('font: bold on')
-        self._style_defs[Style.Month]= xlwt.easyxf(num_format_str='D-MMM')
-        self._style_defs[Style.Day]= xlwt.easyxf(num_format_str='D-MMM')
-        self._style_defs[Style.Money]= xlwt.easyxf(num_format_str='#,##0')
-        #self._style_defs[Style.Money+Style.Italic]= xlwt.easyxf('font:  italic on',num_format_str='#,##0')
-        self._style_defs[Style.DetailedMoney]= xlwt.easyxf(num_format_str='#,##0.00')
-        self._style_defs[Style.Money+Style.Red]= xlwt.easyxf('font: color-index red',num_format_str='#,##0')
-        self._style_defs[Style.Money+Style.Green]= xlwt.easyxf('font: color-index green',num_format_str='#,##0')
-        #self._style_defs[Style.Money+Style.Gray]= xlwt.easyxf('font: color-index gray50',num_format_str='#,##0')
-        #self._style_defs[Style.Money+Style.Gray+Style.Italic]= xlwt.easyxf('font:  italic on, color-index gray50',num_format_str='#,##0')
+        #for style in
 
+        ps=[ Style.Month, Style.Day,Style.Money,Style.DetailedMoney,Style.Percent]
+
+        for p in ps:
+            self._style_defs[p]= xlwt.easyxf(num_format_str=Style.to_xls_formattingstyle(p))
 
 
         if def_font_height:
             for sd in self._style_defs.values():
                 sd.font.height=def_font_height*20
-        for id,cs in table.custom_styles.items():
+
+
+        for id,cs in table._custom_styles.items():
             xfobj = xlwt.XFStyle()
             font_size, background_color,foreground_color,bold,italic,formatting_style=cs
             if def_font_height:
@@ -57,14 +57,16 @@ class DestinationXls:
 
         self._print(self.table)
 
+        if ownedfile:
+            self.wb.save(self.wb_filename)
 
 
     def _print(self,table):
         ws = self.wb.add_sheet(table.title)
         self.ws=ws
-        ws.normal_magn=table.normal_magn
+        ws.normal_magn=table._normal_magn
 
-        for coli, width_in_chars in table.col_widths:
+        for coli, width_in_chars in table._col_widths:
             ws.col(coli).width=256*width_in_chars
 
         for rowi in range(0, len(table._cells)):
@@ -74,8 +76,6 @@ class DestinationXls:
                 if isinstance(c, tuple):
                     v=c[0]
                     s_ind=c[1]
-                    #xstyle=xlwt.easyxf()
-                    #if s_ind<Style.Bold:
                     xstyle=self._style_defs[s_ind]
 
 
@@ -87,14 +87,14 @@ class DestinationXls:
                         ws.write(rowi, coli, c)
 
 class Style:
-    Unknown=0
     Month=1
     Day=2
     Money=4
     DetailedMoney=8
-    Text=16
-    Green=32
-    Red=64
+
+    Percent=17
+    #Green=32
+    #Red=64
 
     @staticmethod
     def to_xls_formattingstyle(src):
@@ -103,6 +103,7 @@ class Style:
         colors[Style.Day]='D-MMM'
         colors[Style.Money]='#,##0'
         colors[Style.DetailedMoney]='#,##0.00'
+        colors[Style.Percent]='0.00%'
         return colors[src]
 class Color:
     NoColor=0
@@ -129,9 +130,9 @@ class Table:
     def __init__(self, title):
         self.title=title
         self._cells=[]
-        self.col_widths=[]
-        self.custom_styles={}
-        self.normal_magn=70
+        self._col_widths=[]
+        self._custom_styles={}
+        self._normal_magn=70
         #self._cells[0]=[]
     def __setitem__(self, key, value):
         #print key
@@ -160,9 +161,9 @@ class Table:
             self.write_cell(rowi,coli,s)
             rowi+=1
     def set_column_width(self, coli,width_in_chars):
-        self.col_widths.append( (coli,width_in_chars) )
+        self._col_widths.append( (coli,width_in_chars) )
 
     def define_style(self, style_id,font_size=8, background_color=Color.NoColor,foreground_color=Color.Black,bold=False,italic=False, formatting_style=None):
-        self.custom_styles[style_id]=(font_size, background_color,foreground_color,bold,italic,formatting_style)
+        self._custom_styles[style_id]=(font_size, background_color,foreground_color,bold,italic,formatting_style)
 
 

@@ -178,6 +178,8 @@ class BudgetRow:
         self.tags=tags
         self.description=description
         self.id=id
+        if len(self.id)<1:
+            self.id=description.lower()
         self.exactdate=exactdate
         self.start=None
         self.end=None
@@ -209,8 +211,8 @@ class Budget:
         if budget_item.behaviour==BudgetBehaviour.Done:
             return True
 
-        if len(budget_item.id)<1:
-            return False
+        #if len(budget_item.id)<1:
+        #    return False
 
         p=None
         if budget_item.period== BudgetFreq.Annually:
@@ -231,7 +233,7 @@ class Budget:
             return False
 
         for eid, edate in self.executions:
-            if eid!=budget_item.id:
+            if eid!=budget_item.id and (eid!=budget_item.description):
                 continue
             if edate>=p.start and edate<=p.end:
                 res=True
@@ -256,21 +258,23 @@ class Budget:
                     self.createline(budget, dt)
 
                 if budget.behaviour!=BudgetBehaviour.Expectation:
-                    is_this_year_accomplished=False
-                    current_period=start.year
-                    for y in budget.accomplished_periods:
-                        if y==current_period:
-                            is_this_year_accomplished=True
-                            break
-                    if not is_this_year_accomplished:
-                        self.bying_targets.append( (budget.exactdate,budget.debit,budget.description) )
-                        budget.isoverdue=True
+                    #is_this_year_accomplished=False
+                    #current_period=start.year
+                    #for y in budget.accomplished_periods:
+                    #    if y==current_period:
+                    #        is_this_year_accomplished=True
+                    #        break
+                    #if not is_this_year_accomplished:
+                    #    self.bying_targets.append( (budget.exactdate,budget.debit,budget.description) )
+                    #    budget.isoverdue=True
+                    self.bying_targets.append(budget)
+                    #budget.isoverdue=True
 
             if budget.period== BudgetFreq.OneTime:
                 if budget.behaviour!=BudgetBehaviour.Done:
                     if budget.debit>0:
-                        self.bying_targets.append( (budget.exactdate,budget.debit,budget.description) )
-                        budget.isoverdue=True
+                        self.bying_targets.append(budget)
+                        #budget.isoverdue=True
                 self.createline(budget, budget.exactdate)
 
             if budget.period== BudgetFreq.Monthly:
