@@ -319,6 +319,9 @@ class AvangardReader:
         tx=accounts.Tx(amount,time)
         tx.comment=op
 
+        #test=u"TOCHKA ZRENIYA  OPTIKA SANKT-PETERSB RU от 15.12.2012 10:38  Карта *1723. Сумма 1297.00  RUR.Оплата товаров и услуг"
+        #found_human, human_date=self.extract_human_date(test)
+
         #if op.find(u" от ")>0:
         found_human, human_date=self.extract_human_date(op)
 
@@ -329,6 +332,7 @@ class AvangardReader:
             acc.out(tx)
 
         if found_human:
+            #print "found_human",human_date,op
             tx.human_date=human_date
 
     def parse_private_to(self, acc):

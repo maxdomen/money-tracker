@@ -557,7 +557,7 @@ def show_buying_targets(bt_row,p,budget,coli,table, ispast):
         if budget_item.exactdate>=p._start and budget_item.exactdate<=p._end:
             is_show=False
             is_overdue, is_executed, is_todo=budget.check_item_execution(budget_item,now)
-            print p._start ,budget_item.description,is_overdue, is_executed, is_todo
+            #print p._start ,budget_item.description,is_overdue, is_executed, is_todo
             style="blackmoney"
 
             if is_overdue:
@@ -957,8 +957,6 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
                 cat_plan_total+=amount
                 budget=row.tx.source_budget
 
-                if descr.find(u"ртпла")>0:
-                    print "ртпла"
                 is_overdue, is_executed, is_todo=budget_def.check_item_execution(budget,duedate)
 
                 if is_executed:
@@ -1004,21 +1002,7 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
 
     return rowi,outputedrecords
 
-#def budget_weekly_planner_cat_enumrecs_deprecate(category,plan,table,rowi,date_start, date_finish,weeks):
-#    for row in plan.Rows:
-# #
 
-#         dt=get_human_date(row)
-#         if dt<date_start and dt>date_finish:
-#             continue
-#         if row.tx.direction==1:
-#             continue
-#         for w in weeks:
-#             if dt>=w.startday and dt<=w.lastday:
-#                 print w.windex, row.description, row.amount
-#    return rowi
-
-#corpaccounting()
 homeaccounting("../money-data/")
 
 

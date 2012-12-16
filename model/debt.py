@@ -103,15 +103,14 @@ class Debts:
         self.debtops=debtops
 
     def define_debt(self,accname,date,amount):
-        #print date,amount
+
         self.debtops.append( (1,date,amount,[],accname) )
 
 
     def xsl_to(self,table):
 
         for p in self.periods:
-                    #p.accs=copy.deepcopy(emptyaccs)
-                    #print "start period",p._start, p._end
+
                     for acc in p.accs.values():
                         acc.total=self.accs[acc.title].value
 
@@ -187,14 +186,7 @@ class BudgetRow:
         if behaviour:
             self.behaviour=behaviour
 
-        #self.accomplished_periods=[]
-        #if isinstance(saccomplished, float):
-        #    self.accomplished_periods.append(int(saccomplished))
-        #else:
-        #    if len(saccomplished)>0:
-        #        lt=saccomplished.split(',')
-        #        for t in lt:
-        #            self.accomplished_periods.append(int(t))
+
 class Budget:
     def __init__(self):
         self.rows=[]
@@ -346,8 +338,8 @@ class Budget:
                         date=datetime(self._start.year+year_repeater, mo,day)
 
 
-                        if budget.description.find(u"ртпла")>0:
-                            print "ртпла"
+                        #if budget.description.find(u"ртпла")>0:
+                        #    print "ртпла"
                         bcopy=self.create_buying_target(budget, date)
                         self.createline(bcopy, date)
 
