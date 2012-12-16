@@ -732,6 +732,7 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
     w=WeekDef(t)
     weeks.append(w)
 
+    #находим первый и последний день недели
     while t<period.end:
         w.lastday=t
         if t.weekday()==6:
@@ -742,7 +743,7 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
         t+=timedelta(days=1)
 
     rowi=1
-    coli=5
+    coli=3
     now=datetime.now()
 
     for w in weeks:
@@ -750,10 +751,11 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
         w.use_fact=w.startday<now
         spast="[p]"
         if w.use_fact: spast=""
-        table[rowi,coli]=u"Week {0}{1}".format(w.windex+1,spast), "weekcaptions"
-        #table[rowi+1,coli]="{0}".format(spast), "weekcaptions"
-        table[rowi,coli+1]="{0}-{1}".format(w.startday.day,w.lastday.day), "weekcaptions"
-        coli+=4
+        sdays="{0}-{1}".format(w.startday.day,w.lastday.day)
+        #table[rowi,coli]=u"Week {0}{1}".format(w.windex+1,spast), "weekcaptions"
+        table[rowi,coli]=u"Week {0}{1}".format(sdays,spast), "weekcaptions"
+        #table[rowi,coli+1]=sdays, "weekcaptions"
+        coli+=2
 
 
     budget_weekly_planner_preprocessrows(plan,clasfctn,period,weeks,False)
@@ -772,90 +774,81 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
     fact_total=0
     prediction_total=0
 
-    table[lastrowi+2,0]=u"План, накапливающийся итог"
-    table[lastrowi+3,0]=u"Факт(предсказание), накапливающийся итог"
+    #table[lastrowi+2,0]=u"План, накапливающийся итог"
+    #table[lastrowi+3,0]=u"Факт(предсказание), накапливающийся итог"
 
     for w in weeks:
-        table[3,w.coli+1]=u"План"
-        table[4,w.coli+1]=w.plan_total, Style.Money
+        table[3,w.coli]=u"План"
+        table[3,w.coli+1]=w.plan_total, Style.Money
 
-        table[4,w.coli+2]=w.predict_total, Style.Money
+        table[4,w.coli]=u"Факт"
+        table[4,w.coli+1]=w.fact_total, Style.Money
 
         plan_total+=w.plan_total
-        table[lastrowi+1,w.coli+1]="Week {0}".format(w.windex+1)
-        table[lastrowi+2,w.coli+1]=plan_total, "accum"
-
-
-        table.set_column_width(w.coli, 10)
-        table.set_column_width(w.coli+1, 5)
-        table[3,w.coli+3]=u"Факт"
-        table[4,w.coli+3]=w.fact_total, Style.Money
         fact_total+=w.fact_total
-        #if w.fact_total==0:
         prediction_total+=w.predict_total
-        #else:
-        #    prediction_total+=w.fact_total
-        table[lastrowi+3,w.coli+1]=prediction_total, "accum"
 
+        #table[lastrowi+1,w.coli+1]="Week {0}".format(w.windex+1)
+        #table[lastrowi+2,w.coli+1]=plan_total, "accum"
+        #table[lastrowi+3,w.coli+1]=prediction_total, "accum"
 
+        table.set_column_width(w.coli,   10)
+        table.set_column_width(w.coli+1,  5)
         table.set_column_width(w.coli+2, 10)
-        table.set_column_width(w.coli+3, 5)
-        table.set_column_width(w.coli+4, 1)
+        table.set_column_width(w.coli+3,  5)
+
 
     mtitle="{0} {1}".format(period.start.strftime("%B"),period.start.year)
-    table[0,0]=mtitle
-    table[0,weeks[3].coli]=mtitle
-    table[3,1]=u"План"
-    table[3,2]=u"Факт"
-    table[3,3]=u"Предикт"
-    table[4,1]=plan_total, Style.Money
-    table[4,2]=fact_total, Style.Money
-    table[4,3]=prediction_total, Style.Money
-    table[5,3]=prediction_total/plan_total, Style.Percent
+    table[0,0]=mtitle #название месяца для которого делается отчет
+    #table[0,weeks[3].coli]=mtitle
+    coli=0
+    table[3,coli]=u"План"
+    table[3,coli+1]=u"Факт"
+    table[3,coli+2]=u"Предикт"
+    table[4,coli]=plan_total, Style.Money
+    table[4,coli+1]=fact_total, Style.Money
+    table[4,coli+2]=prediction_total, Style.Money
+    table[5,coli+2]=prediction_total/plan_total, Style.Percent
 
-    table.set_column_width(0, 8)
+    #table.set_column_width(0, 8)
+    table.set_column_width(0, 5)
     table.set_column_width(1, 5)
     table.set_column_width(2, 5)
-    table.set_column_width(3, 5)
-    table.set_column_width(4, 1)
+    #table.set_column_width(4, 1)
 
-    table[lastrowi+5,0]=u"Просроченные бюджетные цели"
-    bt_row=0
-    #dtnow=datetime.now()
+    todorow=lastrowi+0-5
+    table[todorow,0]=u"Просроченные бюджетные цели"
+    bt_row=1
 
-    #now=datetime.now()
-    #duedate=now
-    #if duedate>period.end:
-    #    duedate=period.end
 
     sum=0
     for budget_item in budget.get_buying_targets():
 
         is_overdue, is_executed, is_todo=budget.check_item_execution(budget_item,duedate)
         if is_overdue:
-                table[lastrowi+6+bt_row,2]="", Style.Month
+                table[todorow+bt_row,1]="", Style.Month
                 descr=budget_item.description
                 if hasattr(budget_item,"_description"):
                     descr= budget_item._description
-                table[lastrowi+6+bt_row,3]=u"{0}({1})".format(descr,budget_item.debit)
+                table[todorow+bt_row,2]=u"{0}({1})".format(descr,budget_item.debit)
                 sum+=budget_item.debit
                 bt_row+=1
-    table[lastrowi+5,0]=u"Просроченные бюджетные цели ({0})".format(sum)
-    lastrowi=lastrowi+6+bt_row
+    table[todorow,0]=u"Просроченные бюджетные цели ({0})".format(sum)
+    lastrowi=todorow
 
     bt_row=1
     sum=0
-    table[lastrowi,0]=u"Бюджетные цели в ближайшие 30 дней"
+    table[lastrowi,7]=u"Бюджетные цели в ближайшие 30 дней"
     for budget_item in budget.get_buying_targets():
         is_overdue, is_executed, is_todo=budget.check_item_execution(budget_item,duedate)
 
         if is_todo:
             if budget_item.exactdate<period.end:
-                table[lastrowi+bt_row,2]=budget_item.exactdate, Style.Month
-                table[lastrowi+bt_row,3]=u"{0}({1})".format(budget_item.description,budget_item.debit)
+                table[lastrowi+bt_row,8]=budget_item.exactdate, Style.Month
+                table[lastrowi+bt_row,9]=u"{0}({1})".format(budget_item.description,budget_item.debit)
                 sum+=budget_item.debit
                 bt_row+=1
-    table[lastrowi,0]=u"Бюджетные цели ({0})".format(sum)
+    table[lastrowi,7]=u"Бюджетные цели ({0})".format(sum)
 
 
     DestinationXls(table,wb,def_font_height=6)
@@ -871,8 +864,6 @@ def budget_weekly_planner_preprocessrows(plan,clasfctn,period,weeks, isfact):
         if row.tx.direction==1:
             continue
         for w in weeks:
-            #row.tx.
-
             if dt>=w.startday and dt<=w.lastday:
                 g=clasfctn.match_tags_to_category(row.normilized_tags)
                 if not hasattr(g, 'txs'):
@@ -893,22 +884,22 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
     cattitle=category.title
 
     if isfamily:
-        table[startrowi, 0]= cattitle, "categoryline"
+        table[startrowi-1, 0]= cattitle, "weekcaptions"
     rowi+=1
 
 
     outputedrecords=0
-    dtnow=datetime.now()
+    #dtnow=datetime.now()
 
-    #trowi=rowi
+
     trowis_plan=[]
-    trowis_fact=[]
+    #trowis_fact=[]
     for w in weeks:
         trowis_plan.append(0)
-        trowis_fact.append(0)
+        #trowis_fact.append(0)
         w.cat_plan_total=0
         w.cat_fact_total=0
-        #w.predict_total=0
+
 
     maxtrow=rowi
     cat_plan_total=0
@@ -922,27 +913,21 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
 
             #мы заранее рассчитали, к какой неделе относится строка
             week=weeks[row.weekindex]
-
+            row_isfact=row.palanner_isfact
             #находим индекс строки в таблицы, для транзакции
-            if row.palanner_isfact:
-                trowi=  trowis_fact[row.weekindex]
-                trowis_fact[row.weekindex]=trowi+1
-            else:
-                trowi=  trowis_plan[row.weekindex]
-                trowis_plan[row.weekindex]=trowi+1
+
+            trowi=  trowis_plan[row.weekindex]
+            trowis_plan[row.weekindex]=trowi+1
 
 
             coli=week.coli
-            #print category.title,row.weekindex,trowi, row.description, row.amount
+
             amount=row.amount.as_float()
-
-
-
 
             descr=row.description
             style="item_plan"
-            if row.palanner_isfact:
-                coli+=2
+            if row_isfact:
+                #coli+=2
                 week.fact_total+=amount
                 week.cat_fact_total+=amount
 
@@ -981,25 +966,28 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
     rowi=maxtrow+1
 
     if outputedrecords==0:
-        table[rowi-2, 0]= cattitle+" [empty]"
-        table[rowi-2, 0]= ""
+        #table[rowi-3, 0]= cattitle+" [empty]"
+        table[rowi-3, 0]= ""
         rowi=startrowi
     else:
-        table[startrowi, 1]= cat_plan_total,"categoryline_totals"
-        table[startrowi, 2]= cat_fact_total,"categoryline_totals"
-        table[startrowi, 3]= cat_predict_total,"categoryline_totals"
+        table[startrowi, 0]= cat_plan_total,"categoryline_totals"
+        table[startrowi, 1]= cat_fact_total,"categoryline_totals"
+        table[startrowi, 2]= cat_predict_total,"categoryline_totals"
         for w in weeks:
             table[startrowi,w.coli]="","categoryline_totals"
-            table[startrowi,w.coli+2]="","categoryline_totals"
-            table[startrowi,w.coli+1]=w.cat_plan_total,"categoryline_totals"
-            table[startrowi,w.coli+3]=w.cat_fact_total,"categoryline_totals"
+            #table[startrowi,w.coli+2]="","categoryline_totals"
+            #table[startrowi,w.coli+1]=w.cat_plan_total,"categoryline_totals"
+            table[startrowi,w.coli+1]=w.cat_fact_total,"categoryline_totals"
 
     for c in category.childs:
+        rowi_temp=rowi
         rowi, child_outputedrecords=budget_weekly_planner_cat(table,c, rowi,period,plan,weeks, budget_def,duedate)
         outputedrecords+=child_outputedrecords
         if outputedrecords>0:
             rowi+=1
-
+        else:
+            rowi=rowi_temp
+    #table[rowi, 0]= cattitle+" [end]"
     return rowi,outputedrecords
 
 
