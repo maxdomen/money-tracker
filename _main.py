@@ -379,12 +379,26 @@ def homeaccounting(basedir):
     clasfctn=load_and_organize_classfication(basedir,statement, True)
     classify_statement(clasfctn,budgetstatement,wb, "BudgetMonthly")
 
+    wb2 = xlwt.Workbook()
 
-    budget_weekly_planner(wb,"Weekly_Prev",common.CalendarHelper.month_prev(),budgetstatement,clasfctn,statement,budget)
-    budget_weekly_planner(wb,"Weekly_Cur",common.CalendarHelper.month_current(),budgetstatement,clasfctn,statement,budget)
-    budget_weekly_planner(wb,"Weekly_Next",common.CalendarHelper.month_next(),budgetstatement,clasfctn,statement,budget)
+
+    table=budget_weekly_planner(wb,"Weekly_Cur",common.CalendarHelper.month_current(),budgetstatement,clasfctn,statement,budget)
+    DestinationXls(table,wb,def_font_height=6)
+    DestinationXls(table,wb2,def_font_height=6)
+
+    table=budget_weekly_planner(wb,"Weekly_Prev",common.CalendarHelper.month_prev(),budgetstatement,clasfctn,statement,budget)
+    DestinationXls(table,wb,def_font_height=6)
+    DestinationXls(table,wb2,def_font_height=6)
+
+    table=budget_weekly_planner(wb,"Weekly_Next",common.CalendarHelper.month_next(),budgetstatement,clasfctn,statement,budget)
+    DestinationXls(table,wb,def_font_height=6)
+    DestinationXls(table,wb2,def_font_height=6)
 
     wb.save("test.xls")
+
+    #wb2 = xlwt.Workbook()
+    wb2.save("familyreport.xls")
+
 
 
 def relationshipwithcompany(statement,wb,debts):
@@ -711,7 +725,13 @@ class WeekDef:
         self.use_fact=False
 
 def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
-    table=Table(caption)
+
+
+
+    mtitle="{0} {1}".format(period.start.strftime("%B"),period.start.year)
+    table=Table(mtitle)
+    table[0,0]=mtitle #название месяца для которого делается отчет
+
     table.normal_magn=80
     table.define_style("totals", foreground_color=Color.Red)
     table.define_style("weekcaptions", bold=True, font_size=10)
@@ -720,7 +740,8 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
     table.define_style("item_plan",background_color=Color.LightGray, formatting_style=Style.Money)
     table.define_style("item_plan_overdue",background_color=Color.Red,foreground_color=Color.White, formatting_style=Style.Money)
 
-
+    table.define_style("percent_green",foreground_color=Color.Green, formatting_style=Style.Percent)
+    table.define_style("percent_red",foreground_color=Color.Red, formatting_style=Style.Percent)
 
     table.define_style("accum",bold=True, formatting_style=Style.Money)
     table.define_style("item_fact", formatting_style=Style.Money)
@@ -753,7 +774,7 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
         if w.use_fact: spast=""
         sdays="{0}-{1}".format(w.startday.day,w.lastday.day)
         #table[rowi,coli]=u"Week {0}{1}".format(w.windex+1,spast), "weekcaptions"
-        table[rowi,coli]=u"Week {0}{1}".format(sdays,spast), "weekcaptions"
+        table[rowi,coli]=u"{0}{1}".format(sdays,spast), "weekcaptions"
         #table[rowi,coli+1]=sdays, "weekcaptions"
         coli+=2
 
@@ -769,13 +790,11 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
     if now<period.start:
         duedate=period.start
 
-    lastrowi,outputedrecords=budget_weekly_planner_cat(table,clasfctn._root,6,  period,plan,weeks,budget,duedate)
+    lastrowi,outputedrecords=budget_weekly_planner_cat(table,clasfctn._root,7,  period,plan,weeks,budget,duedate)
     plan_total=0
     fact_total=0
     prediction_total=0
 
-    #table[lastrowi+2,0]=u"План, накапливающийся итог"
-    #table[lastrowi+3,0]=u"Факт(предсказание), накапливающийся итог"
 
     for w in weeks:
         table[3,w.coli]=u"План"
@@ -788,19 +807,13 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
         fact_total+=w.fact_total
         prediction_total+=w.predict_total
 
-        #table[lastrowi+1,w.coli+1]="Week {0}".format(w.windex+1)
-        #table[lastrowi+2,w.coli+1]=plan_total, "accum"
-        #table[lastrowi+3,w.coli+1]=prediction_total, "accum"
-
         table.set_column_width(w.coli,   10)
         table.set_column_width(w.coli+1,  5)
         table.set_column_width(w.coli+2, 10)
         table.set_column_width(w.coli+3,  5)
 
 
-    mtitle="{0} {1}".format(period.start.strftime("%B"),period.start.year)
-    table[0,0]=mtitle #название месяца для которого делается отчет
-    #table[0,weeks[3].coli]=mtitle
+
     coli=0
     table[3,coli]=u"План"
     table[3,coli+1]=u"Факт"
@@ -808,16 +821,18 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
     table[4,coli]=plan_total, Style.Money
     table[4,coli+1]=fact_total, Style.Money
     table[4,coli+2]=prediction_total, Style.Money
-    table[5,coli+2]=prediction_total/plan_total, Style.Percent
+    over=prediction_total/plan_total
+    if over>1:
+        table[5,coli+2]=over,"percent_red"
+    else:
+        table[5,coli+2]=over, "percent_green"
 
-    #table.set_column_width(0, 8)
     table.set_column_width(0, 5)
     table.set_column_width(1, 5)
     table.set_column_width(2, 5)
-    #table.set_column_width(4, 1)
 
     todorow=lastrowi+0-5
-    table[todorow,0]=u"Просроченные бюджетные цели"
+    table[todorow,0]=u"Просроченные бюджетные цели","weekcaptions"
     bt_row=1
 
 
@@ -830,28 +845,31 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
                 descr=budget_item.description
                 if hasattr(budget_item,"_description"):
                     descr= budget_item._description
-                table[todorow+bt_row,2]=u"{0}({1})".format(descr,budget_item.debit)
+                table[todorow+bt_row,3]=u"{0}".format(descr)
+                table[todorow+bt_row,6]=budget_item.debit, Style.Money
                 sum+=budget_item.debit
                 bt_row+=1
-    table[todorow,0]=u"Просроченные бюджетные цели ({0})".format(sum)
+    table[todorow,6]=sum, Style.Money
     lastrowi=todorow
 
     bt_row=1
     sum=0
-    table[lastrowi,7]=u"Бюджетные цели в ближайшие 30 дней"
+    table[lastrowi,7]=u"Бюджетные цели в ближайшие 30 дней","weekcaptions"
     for budget_item in budget.get_buying_targets():
         is_overdue, is_executed, is_todo=budget.check_item_execution(budget_item,duedate)
 
         if is_todo:
             if budget_item.exactdate<period.end:
                 table[lastrowi+bt_row,8]=budget_item.exactdate, Style.Month
-                table[lastrowi+bt_row,9]=u"{0}({1})".format(budget_item.description,budget_item.debit)
+                table[lastrowi+bt_row,9]=u"{0}".format(budget_item.description)
+                table[lastrowi+bt_row,12]=budget_item.debit, Style.Money
                 sum+=budget_item.debit
                 bt_row+=1
-    table[lastrowi,7]=u"Бюджетные цели ({0})".format(sum)
+    #table[lastrowi,7]=u"Бюджетные цели ({0})".format(sum)
+    table[lastrowi,12]=sum, Style.Money
 
+    return table
 
-    DestinationXls(table,wb,def_font_height=6)
 
 def budget_weekly_planner_preprocessrows(plan,clasfctn,period,weeks, isfact):
     for row in plan.Rows:
