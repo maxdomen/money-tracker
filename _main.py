@@ -722,7 +722,7 @@ class WeekDef:
         self.plan_total=0
         self.fact_total=0
         self.predict_total=0
-        self.use_fact=False
+        #self.use_fact=False
 
 def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
 
@@ -769,9 +769,11 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
 
     for w in weeks:
         w.coli=coli
-        w.use_fact=w.startday<now
+        #w.use_fact=w.startday<now
         spast="[p]"
-        if w.use_fact: spast=""
+        if w.startday<now: spast=""
+        if now>=w.startday and now<=w.lastday:spast="[c]"
+
         sdays="{0}-{1}".format(w.startday.day,w.lastday.day)
         #table[rowi,coli]=u"Week {0}{1}".format(w.windex+1,spast), "weekcaptions"
         table[rowi,coli]=u"{0}{1}".format(sdays,spast), "weekcaptions"
@@ -924,32 +926,30 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
     cat_fact_total=0
     cat_predict_total=0
 
-
+    now=datetime.now()
     #все тразакции данной категории
     if hasattr(category, 'txs') and isfamily:
         for row in category.txs:
-
+            rowdt=row.get_human_or_logical_date()
             #мы заранее рассчитали, к какой неделе относится строка
             week=weeks[row.weekindex]
             row_isfact=row.palanner_isfact
             #находим индекс строки в таблицы, для транзакции
-
             trowi=  trowis_plan[row.weekindex]
             trowis_plan[row.weekindex]=trowi+1
 
 
             coli=week.coli
-
             amount=row.amount.as_float()
 
             descr=row.description
             style="item_plan"
             if row_isfact:
-                #coli+=2
                 week.fact_total+=amount
                 week.cat_fact_total+=amount
 
-                if week.use_fact:
+                #if week.use_fact:
+                if rowdt<=now:
                     cat_predict_total+=amount
                     week.predict_total+=amount
                 cat_fact_total+=amount
@@ -962,6 +962,9 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
 
                 is_overdue, is_executed, is_todo=budget_def.check_item_execution(budget,duedate)
 
+                #if descr.find(u"ртпл")>0:
+                #    print descr,is_overdue, is_executed, is_todo, row.date
+
                 if is_executed:
                     descr="[+]"+descr
 
@@ -969,7 +972,8 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
                     style="item_plan_overdue"
                     descr="[!]"+descr
 
-                if (not week.use_fact) or (is_overdue):
+                #if (not week.use_fact) or (is_overdue):
+                if rowdt>now or is_overdue:
                     if not is_executed:
                         cat_predict_total+=amount
                         week.predict_total+=amount
