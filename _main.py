@@ -1,5 +1,6 @@
 #! coding: utf-8
 import cProfile
+from common import CalendarHelper
 from common.Classification import Classification, ClassificationDataset, ClassificationPrinter, Period
 from common.Table import Table, Style, Color,DestinationXls
 import common.CalendarHelper
@@ -354,14 +355,22 @@ def homeaccounting(basedir):
     #return excel.wb
 
 
+    bigpict_cahsflow_checkpoints=[]
+    #bigpict_cahsflow_checkpoints.append( (datetime(2012,11,30), -(222425.35+39002)) )
+    bigpict_cahsflow_checkpoints.append( (datetime(2012,11,30), 0) )
 
-    bigpicttable=new_big_picture(wb,clasfctn,statement,budgetstatement, budget)
+    bigpict_period=CalendarHelper.Period(datetime(2012,11,1),datetime(2013,12,31))
+    bigpicttable=new_big_picture(wb,clasfctn,statement,budgetstatement, budget,bigpict_cahsflow_checkpoints, bigpict_period)
 
 
     classify_statement(clasfctn,statement,wb, "Monthly")
     relationshipwithcompany(statement,wb,debts)
 
-    debts.xsl_to(bigpicttable)
+    debts_due_to_date=datetime.now()+timedelta(days=31)
+    debts.xsl_to(bigpicttable,bigpict_period,debts_due_to_date)
+
+
+
     DestinationXls(bigpicttable,wb)
 
     #chelp=common.CalendarHelper.CalendarHelper()
@@ -396,7 +405,8 @@ def homeaccounting(basedir):
 
     wb.save("test.xls")
 
-    #wb2 = xlwt.Workbook()
+
+    DestinationXls(bigpicttable,wb2)
     wb2.save("familyreport.xls")
 
 
@@ -499,7 +509,7 @@ def check_classification(group, sid):
             return True
     return False
 
-def big_pict_period(table,coli,p,clasfctn,monthlydataset,cummulative):
+def big_pict_period(table,coli,p,clasfctn,monthlydataset,cummulative,bigpict_cahsflow_checkpoints):
 
     table[1,coli]=p._start,Style.Month
 
@@ -518,18 +528,25 @@ def big_pict_period(table,coli,p,clasfctn,monthlydataset,cummulative):
          table[4,coli]=ebitda, "redmoney"
 
     cummulative+=ebitda
+    cummulative=cumulative_check_points(cummulative,bigpict_cahsflow_checkpoints,p)
     if cummulative>0:
         table[5,coli]=cummulative, "greenmoney"
     else:
         table[5,coli]=cummulative, "redmoney"
 
     return cummulative
+def cumulative_check_points(cummulative,bigpict_cahsflow_checkpoints,p):
 
-def new_big_picture(wb,clasfctn,statement,budgetstatement,budget):
+    for d,v in bigpict_cahsflow_checkpoints:
+        if d>=p._start and d<=p._end:
+            cummulative=v
+            print "cummulative",cummulative,d,p._start
+    return cummulative
+def new_big_picture(wb,clasfctn,statement,budgetstatement,budget, bigpict_cahsflow_checkpoints, period):
     monthlydataset=ClassificationDataset(clasfctn,Period.Month, statement)
     budgetmonthlydataset=ClassificationDataset(clasfctn,Period.Month, budgetstatement)
 
-    table=Table("Big Picture")
+    table=Table(u"Годовой план")
     table.define_style("redmoney", foreground_color=Color.Red,formatting_style=  Style.Money)
     table.define_style("greenmoney", foreground_color=Color.Green,formatting_style=  Style.Money)
     table.define_style("blackmoney", foreground_color=Color.Black,formatting_style=  Style.Money)
@@ -540,21 +557,36 @@ def new_big_picture(wb,clasfctn,statement,budgetstatement,budget):
     dtnow=datetime.now()
     bt_row=0
     for p in monthlydataset.periods:
+        #cummulative=cumulative_check_points(cummulative,bigpict_cahsflow_checkpoints,p)
 
         if  not (p._end<dtnow):
             break
-        cummulative=big_pict_period(table,coli,p,clasfctn,monthlydataset,cummulative)
+
+
+
+        if p._start<period.start or p._end>period.end:
+            continue
+
+        cummulative=big_pict_period(table,coli,p,clasfctn,monthlydataset,cummulative,bigpict_cahsflow_checkpoints)
         bt_row=show_buying_targets(bt_row,p,budget,coli,table, ispast=True)
 
         coli+=1
 
     for p in budgetmonthlydataset.periods:
+        #cummulative=cumulative_check_points(cummulative,bigpict_cahsflow_checkpoints,p)
         if  p._end<dtnow:
             continue
         else:
             table[0,coli]="Plan Y"+str(p._end.year-2000)
 
-        cummulative=big_pict_period(table,coli,p,clasfctn,budgetmonthlydataset,cummulative)
+
+
+        if p._start<period.start or p._end>period.end:
+            continue
+
+
+
+        cummulative=big_pict_period(table,coli,p,clasfctn,budgetmonthlydataset,cummulative,bigpict_cahsflow_checkpoints)
         bt_row=show_buying_targets(bt_row,p,budget,coli,table, ispast=False)
 
 
@@ -730,9 +762,10 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
 
     mtitle="{0} {1}".format(period.start.strftime("%B"),period.start.year)
     table=Table(mtitle)
+    #self._normal_magn=0
     table[0,0]=mtitle #название месяца для которого делается отчет
 
-    table.normal_magn=80
+    table._normal_magn=100
     table.define_style("totals", foreground_color=Color.Red)
     table.define_style("weekcaptions", bold=True, font_size=10)
     table.define_style("categoryline", bold=True, background_color=Color.LightGreen)

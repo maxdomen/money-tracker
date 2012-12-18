@@ -107,7 +107,7 @@ class Debts:
         self.debtops.append( (1,date,amount,[],accname) )
 
 
-    def xsl_to(self,table):
+    def xsl_to(self,table,period, debts_due_to_date):
 
         for p in self.periods:
 
@@ -125,21 +125,24 @@ class Debts:
                             if optype==1:
                                 p.accs[key].total=amount
 
-
+        #названия долгов
         baserowi=10
+        table[baserowi-2,0]=u"Сумма долгов"
         rowi=baserowi
         for acc in self.accs.values():
             table[rowi,0]=acc.title
             rowi+=1
-        dtnow=datetime.now()+timedelta(days=31)
 
 
         coli=1
 
 
         for p in self.periods:
-            if  not (p._end<dtnow):
+            if  not (p._end<debts_due_to_date):
                 break
+
+            if p._start<period.start or p._end>period.end:
+                continue
 
             alldebts=0
             rowi=baserowi
