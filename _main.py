@@ -359,7 +359,7 @@ def homeaccounting(basedir):
     #bigpict_cahsflow_checkpoints.append( (datetime(2012,11,30), -(222425.35+39002)) )
     bigpict_cahsflow_checkpoints.append( (datetime(2012,11,30), 0) )
 
-    bigpict_period=CalendarHelper.Period(datetime(2012,11,1),datetime(2013,12,31))
+    bigpict_period=CalendarHelper.Period(datetime(2012,11,1),datetime(2014,1,1))
     bigpicttable=new_big_picture(wb,clasfctn,statement,budgetstatement, budget,bigpict_cahsflow_checkpoints, bigpict_period)
 
 
@@ -557,7 +557,7 @@ def new_big_picture(wb,clasfctn,statement,budgetstatement,budget, bigpict_cahsfl
     dtnow=datetime.now()
     bt_row=0
     for p in monthlydataset.periods:
-        #cummulative=cumulative_check_points(cummulative,bigpict_cahsflow_checkpoints,p)
+
 
         if  not (p._end<dtnow):
             break
@@ -573,7 +573,7 @@ def new_big_picture(wb,clasfctn,statement,budgetstatement,budget, bigpict_cahsfl
         coli+=1
 
     for p in budgetmonthlydataset.periods:
-        #cummulative=cumulative_check_points(cummulative,bigpict_cahsflow_checkpoints,p)
+
         if  p._end<dtnow:
             continue
         else:

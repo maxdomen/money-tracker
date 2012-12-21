@@ -238,14 +238,21 @@ class XlsReader:
         accnamecolind=self.config['col_acc']
         for rowi in range(frow,sheet.nrows):
             r=sheet.row(rowi)
-            op=r[self.config['col_op']].value
-            if len(op)<1:
-                continue
+
 
             xlsdate=r[self.config['col_date']].value
             if len(str(xlsdate))<1:
                 xlsdate=prevxlsdate
+            else:
+                tdate=xlrd.xldate_as_tuple(xlsdate,0)
+                date=datetime(tdate[0],tdate[1],tdate[2],tdate[3],tdate[4],tdate[5])
+                prevxlsdate=xlsdate
 
+
+
+            op=r[self.config['col_op']].value
+            if len(op)<1:
+                continue
 
             if len(accs)==1:
                 acc=accs[0]
@@ -257,9 +264,6 @@ class XlsReader:
                     raise Exception("Cell {0}:{1} refers to unknown account '{2}'".format(rowi,accnamecolind,accname))
                 acc=accsobj[accname]
 
-            tdate=xlrd.xldate_as_tuple(xlsdate,0)
-            date=datetime(tdate[0],tdate[1],tdate[2],tdate[3],tdate[4],tdate[5])
-
 
 
             ain=self.getamount(r,'col_in')
@@ -270,7 +274,7 @@ class XlsReader:
 
 
 
-            prevxlsdate=xlsdate
+
             tx=self.addrec(acc,date,op,ain,aout,abal,src)
 
             tag1=r[self.config['col_tag1']].value
