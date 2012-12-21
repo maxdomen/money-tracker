@@ -697,7 +697,7 @@ def details_for_cat(ws,category, rowi, date_start, date_finish):
             if len(satags)<1:
                 satags="<notags>"
             ws.write(rowi, bc+7,satags )
-
+            ws.write(rowi, bc+9,r.tx._txid )
             rowi+=1
 
     for c in category.childs:
@@ -862,9 +862,9 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
     else:
         table[5,coli+2]=over, "percent_green"
 
-    table.set_column_width(0, 5)
-    table.set_column_width(1, 5)
-    table.set_column_width(2, 5)
+    table.set_column_width(0, 6)
+    table.set_column_width(1, 6)
+    table.set_column_width(2, 6)
 
     todorow=lastrowi+0-5
     table[todorow,0]=u"Просроченные бюджетные цели","weekcaptions"
