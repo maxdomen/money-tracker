@@ -123,9 +123,11 @@ class Classification:
 
 
         self._uncategorized=Category(u"Без категории")
-        #self._uncategorized._sid="_uncategorized"
+        self._uncategorized._sid="_uncategorized"
+
         self._root.add(self._uncategorized)
         self._untagged=Category(u"Без тегов")
+        self._untagged._sid=="_untagged"
         self._uncategorized.add(self._untagged)
         self._auto_categorized=None
 

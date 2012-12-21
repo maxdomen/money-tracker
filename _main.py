@@ -928,15 +928,20 @@ def budget_weekly_planner_preprocessrows(plan,clasfctn,period,weeks, isfact):
 def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def, duedate):
 
 
-    isfamily=check_classification(category, "family_out")
+    isshow=check_classification(category, "family_out")
     isfinhelp=check_classification(category, "fin_help")
     if isfinhelp:
-        isfamily=False
+        isshow=False
+
+    #if category==self._uncategorized:
+    isuncategorized=check_classification(category, "_uncategorized")
+    if isuncategorized:
+        isshow=True
 
     startrowi=rowi
     cattitle=category.title
 
-    if isfamily:
+    if isshow:
         table[startrowi-1, 0]= cattitle, "weekcaptions"
     rowi+=1
 
@@ -961,7 +966,7 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
 
     now=datetime.now()
     #все тразакции данной категории
-    if hasattr(category, 'txs') and isfamily:
+    if hasattr(category, 'txs') and isshow:
         for row in category.txs:
             rowdt=row.get_human_or_logical_date()
             #мы заранее рассчитали, к какой неделе относится строка
