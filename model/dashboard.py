@@ -5,7 +5,7 @@ import xlwt
 from accounts import RowType
 from common.Classification import Period
 from currency import Currency, Money
-from debt import BudgetFreq, BudgetBehaviour
+from budget import BudgetFreq, BudgetBehaviour
 
 __author__ = 'Max'
 

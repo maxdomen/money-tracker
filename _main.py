@@ -5,6 +5,7 @@ from common.Classification import Classification, ClassificationDataset, Classif
 from common.Table import Table, Style, Color,DestinationXls
 import common.CalendarHelper
 from model import debt
+from model import budget
 import copy
 
 import readers.StatementReader
@@ -282,9 +283,9 @@ def homeaccounting(basedir):
     sveta = Account('sveta',rub)
     svetaaccounting("../money-data/",sveta)
 
-    budget= debt.Budget()
+    budgetf= budget.Budget()
 
-    parsing(basedir,avr,avu,avs,tcs,boa,wallet,safe, sveta,budget)
+    parsing(basedir,avr,avu,avs,tcs,boa,wallet,safe, sveta,budgetf)
 
     familypool = Pool()
     familypool.link_account(tcs)
@@ -312,7 +313,7 @@ def homeaccounting(basedir):
 
 
 
-    budgetstatement=budget.make_statement(rub,forNyears=2)
+    budgetstatement=budgetf.make_statement(rub,forNyears=2)
 
 
     #cProfile.runctx('budgetstatement=budget.make_statement(rub)', globals(),locals())
@@ -360,7 +361,7 @@ def homeaccounting(basedir):
     bigpict_cahsflow_checkpoints.append( (datetime(2012,11,30), 0) )
 
     bigpict_period=CalendarHelper.Period(datetime(2012,11,1),datetime(2014,1,1))
-    bigpicttable=new_big_picture(wb,clasfctn,statement,budgetstatement, budget,bigpict_cahsflow_checkpoints, bigpict_period)
+    bigpicttable=new_big_picture(wb,clasfctn,statement,budgetstatement, budgetf,bigpict_cahsflow_checkpoints, bigpict_period)
 
 
     classify_statement(clasfctn,statement,wb, "Monthly")
@@ -391,15 +392,15 @@ def homeaccounting(basedir):
     wb2 = xlwt.Workbook()
 
 
-    table=budget_weekly_planner(wb,"Weekly_Cur",common.CalendarHelper.month_current(),budgetstatement,clasfctn,statement,budget)
+    table=budget_weekly_planner(wb,"Weekly_Cur",common.CalendarHelper.month_current(),budgetstatement,clasfctn,statement,budgetf)
     DestinationXls(table,wb,def_font_height=6)
     DestinationXls(table,wb2,def_font_height=6)
 
-    table=budget_weekly_planner(wb,"Weekly_Prev",common.CalendarHelper.month_prev(),budgetstatement,clasfctn,statement,budget)
+    table=budget_weekly_planner(wb,"Weekly_Prev",common.CalendarHelper.month_prev(),budgetstatement,clasfctn,statement,budgetf)
     DestinationXls(table,wb,def_font_height=6)
     DestinationXls(table,wb2,def_font_height=6)
 
-    table=budget_weekly_planner(wb,"Weekly_Next",common.CalendarHelper.month_next(),budgetstatement,clasfctn,statement,budget)
+    table=budget_weekly_planner(wb,"Weekly_Next",common.CalendarHelper.month_next(),budgetstatement,clasfctn,statement,budgetf)
     DestinationXls(table,wb,def_font_height=6)
     DestinationXls(table,wb2,def_font_height=6)
 
@@ -608,7 +609,7 @@ def show_buying_targets(bt_row,p,budget,coli,table, ispast):
 
             if is_overdue:
                 is_show=True
-            if budget_item.period== model.debt.BudgetFreq.OneTime or budget_item.period== model.debt.BudgetFreq.Annually:
+            if budget_item.period== model.budget.BudgetFreq.OneTime or budget_item.period== model.budget.BudgetFreq.Annually:
                 if (not is_executed):
                     is_show=True
 
