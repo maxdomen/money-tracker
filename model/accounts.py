@@ -297,6 +297,7 @@ class StatementRow:
         dt=self.date
         if self.tx.logical_date:
             dt=self.tx.logical_date
+            return dt
 
         if hasattr(self.tx,"human_date"):
             if self.tx.human_date:
