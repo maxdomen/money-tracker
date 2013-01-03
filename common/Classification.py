@@ -139,6 +139,7 @@ class Classification:
     def create_auto_classification_begin(self):
         if not self._auto_categorized:
             self._auto_categorized=Category(u"Автосозданные категории")
+            self._auto_categorized._sid="_auto"
             self._root.add(self._auto_categorized)
         self.finalize()
 
@@ -440,6 +441,7 @@ class ClassificationDataset:
         return group
     def calcsubtotals(self,category,p):
         res=0
+        #res=p._cells[category._index]
         for c in category.childs:
             v=p._cells[c._index]
             res=res+v

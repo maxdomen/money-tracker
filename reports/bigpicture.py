@@ -52,6 +52,53 @@ def new_big_picture(clasfctn,statement,budgetstatement,budget, bigpict_cahsflow_
         coli+=1
 
     return table
+
+
+def big_pict_period(table,coli,p,clasfctn,monthlydataset,cummulative,bigpict_cahsflow_checkpoints):
+
+    table[1,coli]=p._start,Style.Month
+
+    category=clasfctn.get_category_by_id("family_in")
+    income=monthlydataset.calcsubtotals(category,p)
+    table[2,coli]=income
+
+    category=clasfctn.get_category_by_id("family_out")
+    losses=monthlydataset.calcsubtotals(category,p)
+
+    category=clasfctn.get_category_by_id("fin_help")
+    #fin_help=monthlydataset.calcsubtotals(category,p)
+    fin_help=p._cells[category._index]
+    losses=losses-fin_help
+
+    #print "fin_help",fin_help,losses
+
+
+    table[3,coli]=losses
+    ebitda=income-losses
+
+
+    if ebitda>0:
+        table[4,coli]=ebitda, "greenmoney"
+    else:
+        table[4,coli]=ebitda, "redmoney"
+
+    cummulative+=ebitda
+    cummulative=cumulative_check_points(cummulative,bigpict_cahsflow_checkpoints,p)
+    if cummulative>0:
+        table[5,coli]=cummulative, "greenmoney"
+    else:
+        table[5,coli]=cummulative, "redmoney"
+
+    return cummulative
+
+def cumulative_check_points(cummulative,bigpict_cahsflow_checkpoints,p):
+
+    for d,v in bigpict_cahsflow_checkpoints:
+        if d>=p._start and d<=p._end:
+            cummulative=v
+            print "cummulative",cummulative,d,p._start
+    return cummulative
+
 def show_buying_targets(bt_row,p,budgetf,coli,table, ispast):
     sum=0.0
     base=22
@@ -82,39 +129,3 @@ def show_buying_targets(bt_row,p,budgetf,coli,table, ispast):
     if sum>0:
         table[base,coli]=sum,Style.Money
     return bt_row
-
-def big_pict_period(table,coli,p,clasfctn,monthlydataset,cummulative,bigpict_cahsflow_checkpoints):
-
-    table[1,coli]=p._start,Style.Month
-
-    category=clasfctn.get_category_by_id("family_in")
-    income=monthlydataset.calcsubtotals(category,p)
-    table[2,coli]=income
-
-    category=clasfctn.get_category_by_id("family_out")
-    losses=monthlydataset.calcsubtotals(category,p)
-    table[3,coli]=losses
-    ebitda=income-losses
-
-
-    if ebitda>0:
-        table[4,coli]=ebitda, "greenmoney"
-    else:
-        table[4,coli]=ebitda, "redmoney"
-
-    cummulative+=ebitda
-    cummulative=cumulative_check_points(cummulative,bigpict_cahsflow_checkpoints,p)
-    if cummulative>0:
-        table[5,coli]=cummulative, "greenmoney"
-    else:
-        table[5,coli]=cummulative, "redmoney"
-
-    return cummulative
-
-def cumulative_check_points(cummulative,bigpict_cahsflow_checkpoints,p):
-
-    for d,v in bigpict_cahsflow_checkpoints:
-        if d>=p._start and d<=p._end:
-            cummulative=v
-            print "cummulative",cummulative,d,p._start
-    return cummulative

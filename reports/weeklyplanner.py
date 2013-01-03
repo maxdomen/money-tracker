@@ -194,10 +194,14 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
     if isfinhelp:
         isshow=False
 
-    #if category==self._uncategorized:
     isuncategorized=check_classification(category, "_uncategorized")
     if isuncategorized:
         isshow=True
+    isauto=check_classification(category, "_auto")
+    if isauto:
+        isshow=True
+
+
 
     startrowi=rowi
     cattitle=category.title
