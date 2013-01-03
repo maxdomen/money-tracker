@@ -9,15 +9,7 @@ from currency import *
 #
 __author__ = 'Max'
 from datetime import datetime, timedelta
-#from decimal import *
 
-#class Journal:
-#    def Available(self, str):
-#        #22.03.2012 13:28 59 274.72RUR
-#        return
-
-#    def Available(self, date, amnt):
-#        return
 
 
 class Amount:

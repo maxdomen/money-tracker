@@ -462,7 +462,7 @@ def relationshipwithcompany(statement,wb,debts):
                 rowi+=1
                 mydebt=cp[1]
                 print_checkpoint(table,rbase+rowi,cp)
-                debts.define_debt("CM",cp[0],cp[1])
+                debts.define_debt_balance("CM",cp[0],cp[1])
                 rowi+=1
                 break
 
@@ -481,7 +481,7 @@ def relationshipwithcompany(statement,wb,debts):
 
         table[rbase+rowi,15]=TagTools.TagsToStr(row.tags)
 
-        debts.define_debt("CM",row.date,mydebt)
+        debts.define_debt_balance("CM",row.date,mydebt)
 
         rowi+=1
 
@@ -490,7 +490,7 @@ def relationshipwithcompany(statement,wb,debts):
                  rowi+=1
                  mydebt=cp[1]
                  print_checkpoint(table,rbase+rowi,cp)
-                 debts.define_debt("CM",cp[0],cp[1])
+                 debts.define_debt_balance("CM",cp[0],cp[1])
                  rowi+=1
                  break
 
