@@ -313,7 +313,8 @@ def homeaccounting(basedir):
 
 
 
-    budgetstatement=budgetf.make_statement(rub,forNyears=2)
+
+    budgetstatement=budgetf.make_statement(datetime(datetime.now().year-1,1,1),rub,forNyears=2)
 
 
     #cProfile.runctx('budgetstatement=budget.make_statement(rub)', globals(),locals())

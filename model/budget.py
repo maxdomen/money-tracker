@@ -154,11 +154,9 @@ class Budget:
             budget2.exactdate=dt
             self.bying_targets.append(budget2)
         return budget2
-    def make_statement(self, currency=usd, forNyears=1):
+    def make_statement(self, start_date,currency=usd,forNyears=1):
         self.bying_targets=[]
-        start=datetime.now()
-        y=start.year
-        self._start=datetime(y,1,1)
+        self._start=start_date
 
 
         for budget in self.rows:
