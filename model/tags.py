@@ -33,6 +33,7 @@ class AutoTagger:
         self.handlers=[]
         self.manual_tags_input=[]
         self.manual_tags_remove=[]
+        self.manual_tags_comments=[]
     def declare2(self, firststword,str, tags):
         self.decls.append( tagdef(firststword,str,tags) )
     def declares(self, arr):
@@ -118,6 +119,13 @@ class AutoTagger:
             tx=acc.txsdictionary.get(txid)
             if tx:
                 tx.remove_tag(tag)
+        for txid, comment in self.manual_tags_comments:
+            tx=None
+            tx=acc.txsdictionary.get(txid)
+            if tx:
+                tx.comment=comment+" "+tx.comment
+
+
     def _searchbycomment(self,comment,txss):
 
         #так как поиск ведется по комментарию, а его уникальность не гарантируется,
@@ -192,6 +200,14 @@ class AutoTagger:
                 tag_add2=r[3].value
             if len(r)>4:
                 tag_remove=r[4].value
+
+            #if txid=="1312200avr1999.00":
+            #    print "sss"
+            if len(r)>5:
+                newcomment=r[5].value
+                if len(newcomment)>1:
+                    #print newcomment
+                    self.manual_tags_comments.append((txid,newcomment))
 
             if len(tag_add1)>0:
                 self.manual_tags_input.append((txid,tag_add1))
