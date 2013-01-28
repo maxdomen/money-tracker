@@ -1,4 +1,6 @@
 #! coding: utf-8
+from collections import OrderedDict
+
 __author__ = 'Max'
 from  common.Classification import *
 from common.Table import Table, Style, Color,DestinationXls
@@ -17,9 +19,7 @@ class WeekDef:
         self.predict_total=0
         #self.use_fact=False
 
-def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
-
-
+def budget_weekly_planner(caption,period, plan, clasfctn2, fact,budget):
 
     mtitle="{0} {1}".format(period.start.strftime("%B"),period.start.year)
     table=Table(mtitle)
@@ -57,21 +57,19 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
             weeks.append(w)
         t+=timedelta(days=1)
 
+    #заголовки колонок недель
     rowi=1
     coli=3
     now=datetime.now()
 
     for w in weeks:
         w.coli=coli
-        #w.use_fact=w.startday<now
         spast="[p]"
         if w.startday<now: spast=""
         if now>=w.startday and now<=w.lastday:spast="[c]"
 
         sdays="{0}-{1}".format(w.startday.day,w.lastday.day)
-        #table[rowi,coli]=u"Week {0}{1}".format(w.windex+1,spast), "weekcaptions"
         table[rowi,coli]=u"{0}{1}".format(sdays,spast), "weekcaptions"
-        #table[rowi,coli+1]=sdays, "weekcaptions"
         coli+=2
 
 
@@ -86,7 +84,10 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
     if now<period.start:
         duedate=period.start
 
-    lastrowi,outputedrecords=budget_weekly_planner_cat(table,clasfctn._root,7,  period,plan,weeks,budget,duedate)
+    #вывод массива данных
+    overspendingReport={}
+    lastrowi,outputedrecords=budget_weekly_planner_cat(table,clasfctn._root,7,  period,plan,weeks,budget,duedate,overspendingReport)
+
     plan_total=0
     fact_total=0
     prediction_total=0
@@ -164,6 +165,21 @@ def budget_weekly_planner(wb, caption,period, plan, clasfctn2, fact,budget):
         #table[lastrowi,7]=u"Бюджетные цели ({0})".format(sum)
     table[lastrowi,12]=sum, Style.Money
 
+    bt_row=lastrowi+3
+    table[bt_row,0]=u"Отчет по перерасходу","weekcaptions"
+    overspending_sum=0
+    #overspendingReport=OrderedDict(overspendingReport)
+    overspendingReport=OrderedDict(sorted(overspendingReport.items(), key=lambda t: t[1], reverse=True))
+    for k, v in overspendingReport.items():
+        if v>0:
+            bt_row+=1
+            table[bt_row,3]=k
+            table[bt_row,6]=v, Style.Money
+            overspending_sum+=v
+
+    table[bt_row+2,3]=u"Итого:"
+    table[bt_row+2,6]=overspending_sum, Style.Money
+
     return table
 
 
@@ -186,7 +202,7 @@ def budget_weekly_planner_preprocessrows(plan,clasfctn,period,weeks, isfact):
                 row.weekindex=w.windex
                 row.palanner_isfact=isfact
 
-def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def, duedate):
+def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def, duedate,overspendingReport):
 
 
     isshow=check_classification(category, "family_out")
@@ -212,14 +228,10 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
 
 
     outputedrecords=0
-    #dtnow=datetime.now()
-
 
     trowis_plan=[]
-    #trowis_fact=[]
     for w in weeks:
         trowis_plan.append(0)
-        #trowis_fact.append(0)
         w.cat_plan_total=0
         w.cat_fact_total=0
 
@@ -265,9 +277,6 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
 
                 is_overdue, is_executed, is_todo=budget_def.check_item_execution(budget,duedate)
 
-                #if descr.find(u"ртпл")>0:
-                #    print descr,is_overdue, is_executed, is_todo, row.date
-
                 if is_executed:
                     descr="[+]"+descr
 
@@ -291,22 +300,20 @@ def budget_weekly_planner_cat(table,category, rowi, period,plan,weeks,budget_def
     rowi=maxtrow+1
 
     if outputedrecords==0:
-        #table[rowi-3, 0]= cattitle+" [empty]"
         table[rowi-3, 0]= ""
         rowi=startrowi
     else:
         table[startrowi, 0]= cat_plan_total,"categoryline_totals"
         table[startrowi, 1]= cat_fact_total,"categoryline_totals"
         table[startrowi, 2]= cat_predict_total,"categoryline_totals"
+        overspendingReport[cattitle]=cat_fact_total-cat_plan_total
         for w in weeks:
             table[startrowi,w.coli]="","categoryline_totals"
-            #table[startrowi,w.coli+2]="","categoryline_totals"
-            #table[startrowi,w.coli+1]=w.cat_plan_total,"categoryline_totals"
             table[startrowi,w.coli+1]=w.cat_fact_total,"categoryline_totals"
 
     for c in category.childs:
         rowi_temp=rowi
-        rowi, child_outputedrecords=budget_weekly_planner_cat(table,c, rowi,period,plan,weeks, budget_def,duedate)
+        rowi, child_outputedrecords=budget_weekly_planner_cat(table,c, rowi,period,plan,weeks, budget_def,duedate,overspendingReport)
         outputedrecords+=child_outputedrecords
         if outputedrecords>0:
             rowi+=1

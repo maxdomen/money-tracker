@@ -396,15 +396,15 @@ def homeaccounting(basedir):
     wb2 = xlwt.Workbook()
 
 
-    table=weeklyplanner.budget_weekly_planner(wb,"Weekly_Cur",common.CalendarHelper.month_current(),budgetstatement,clasfctn,statement,budgetf)
+    table=weeklyplanner.budget_weekly_planner("Weekly_Cur",common.CalendarHelper.month_current(),budgetstatement,clasfctn,statement,budgetf)
     DestinationXls(table,wb,def_font_height=6)
     DestinationXls(table,wb2,def_font_height=6)
 
-    table=weeklyplanner.budget_weekly_planner(wb,"Weekly_Prev",common.CalendarHelper.month_prev(),budgetstatement,clasfctn,statement,budgetf)
+    table=weeklyplanner.budget_weekly_planner("Weekly_Prev",common.CalendarHelper.month_prev(),budgetstatement,clasfctn,statement,budgetf)
     DestinationXls(table,wb,def_font_height=6)
     DestinationXls(table,wb2,def_font_height=6)
 
-    table=weeklyplanner.budget_weekly_planner(wb,"Weekly_Next",common.CalendarHelper.month_next(),budgetstatement,clasfctn,statement,budgetf)
+    table=weeklyplanner.budget_weekly_planner("Weekly_Next",common.CalendarHelper.month_next(),budgetstatement,clasfctn,statement,budgetf)
     DestinationXls(table,wb,def_font_height=6)
     DestinationXls(table,wb2,def_font_height=6)
 
