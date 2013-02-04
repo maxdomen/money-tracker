@@ -51,10 +51,14 @@ def budget_weekly_planner(caption,period, plan, clasfctn2, fact,budget):
     while t<period.end:
         w.lastday=t
         if t.weekday()==6:
-            i=w.windex
-            w=WeekDef(t+timedelta(days=1))
-            w.windex=i+1
-            weeks.append(w)
+            #это воскресенье
+            #ечли это последний день месяца, то не создаем  новую неделю
+            firstDayOfNextWeek=t+timedelta(days=1)
+            if firstDayOfNextWeek<period.end:
+                i=w.windex
+                w=WeekDef(firstDayOfNextWeek)
+                w.windex=i+1
+                weeks.append(w)
         t+=timedelta(days=1)
 
     #заголовки колонок недель
