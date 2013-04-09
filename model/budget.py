@@ -276,6 +276,19 @@ class Budget:
         for rowi in range(1,sheet.nrows):
             r=sheet.row(rowi)
             speriod=r[1].value.lower()
+            sday=r[2].value
+            day=1
+            exactdate=None
+            if isinstance(sday, float):
+                if sday>31:
+                    xlsdate=sday
+                    tdate=xlrd.xldate_as_tuple(xlsdate,0)
+                    exactdate=datetime(tdate[0],tdate[1],tdate[2])
+                else:
+                    day=int(sday)
+            if len(speriod)<1 and exactdate:
+                speriod="onetime"
+
             if len(speriod)<1:
                 continue
 
@@ -305,17 +318,7 @@ class Budget:
                     etags.append(st)
             tags=etags
 
-            sday=r[2].value
-            day=1
-            exactdate=None
 
-            if isinstance(sday, float):
-                if sday>31:
-                    xlsdate=sday
-                    tdate=xlrd.xldate_as_tuple(xlsdate,0)
-                    exactdate=datetime(tdate[0],tdate[1],tdate[2])
-                else:
-                    day=int(sday)
             debit=r[3].value
             if not isinstance(debit, float): debit=0
             credit=r[4].value
