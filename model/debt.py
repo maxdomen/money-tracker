@@ -78,12 +78,13 @@ class Debts:
                 lastknownr=r
 
             #в строке бкдкт перечилены текущие остатки на счетах, в том числе и на кредитных картых
-            for accname, balance in lastknownr.cumulatives.items():
-                if accname=="tcs" or accname=="avu":
-                    if balance>0:
-                        balance=0
-                    balance=-1*balance
-                    debtxs.append(DebtTx(accname,lastknownr.date,balance=balance))
+            if lastknownr:
+                for accname, balance in lastknownr.cumulatives.items():
+                    if accname=="tcs" or accname=="avu":
+                        if balance>0:
+                            balance=0
+                        balance=-1*balance
+                        debtxs.append(DebtTx(accname,lastknownr.date,balance=balance))
 
 
         self.debtxs=debtxs

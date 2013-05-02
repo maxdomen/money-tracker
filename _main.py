@@ -83,58 +83,56 @@ def svetaaccounting(basedir,acc):
     #tcs = Account('scash',rub)
     #avr = Account('balt',rub)
     cashconfig={'first_row':1,'col_acc':1,'col_date':0, 'col_op':4,'col_in':2,'col_out':3,'col_balance':-1, 'col_tag1':5,'col_tag2':6}
-    XlsReader(basedir+'home/2012/2012 sveta.xlsx','Records',cashconfig).parse_to([acc])
+    XlsReader(basedir+'home/2013/2013 sveta.xlsx','Records',cashconfig).parse_to([acc])
 
 
 def parsing(basedir,avr,avu,avs,tcs,boa,wallet,safe, sveta, budget):
     print "Load sources"
-    BankOfAmericaReader(basedir+"home/2012/boa 2012.csv").parse_to(boa)
+    #BankOfAmericaReader(basedir+"home/2012/boa 2012.csv").parse_to(boa)
 
-    AvangardReader(basedir+"home/2012/avr 1.1.2012 - 1.4.2012.xls").parse_private_to(avr)
-    AvangardReader(basedir+"home/2012/avr apr 2012.xls").parse_private_to(avr)
-    AvangardReader(basedir+"home/2012/avr may 2012.xls").parse_private_to(avr)
-    AvangardReader(basedir+"home/2012/avr june 2012.xls").parse_private_withreserved_to(avr)
-    AvangardReader(basedir+"home/2012/avr july 2012.xls").parse_private_withreserved_to(avr)
-    AvangardReader(basedir+"home/2012/avr aug 2012.xls").parse_private_withreserved_to(avr)
-    AvangardReader(basedir+"home/2012/avr sep 2012 only.xls").parse_private_withreserved_to(avr)
+    #AvangardReader(basedir+"home/2012/avr 1.1.2012 - 1.4.2012.xls").parse_private_to(avr)
+    #AvangardReader(basedir+"home/2012/avr apr 2012.xls").parse_private_to(avr)
+    #AvangardReader(basedir+"home/2012/avr may 2012.xls").parse_private_to(avr)
+    #AvangardReader(basedir+"home/2012/avr june 2012.xls").parse_private_withreserved_to(avr)
+    #AvangardReader(basedir+"home/2012/avr july 2012.xls").parse_private_withreserved_to(avr)
+    #AvangardReader(basedir+"home/2012/avr aug 2012.xls").parse_private_withreserved_to(avr)
+    #AvangardReader(basedir+"home/2012/avr sep 2012 only.xls").parse_private_withreserved_to(avr)
 
 
     AvangardReader(basedir+"home/2013/avr jan-mar 2013.xls").parse_private_withreserved_to(avr)
     AvangardReader(basedir+"home/2013/avr apr 2013.xls").parse_private_withreserved_to(avr)
-    #AvangardReader(basedir+"home/2013/avr may 2013.xls").parse_private_withreserved_to(avr)
 
-    AvangardReader(basedir+"home/2012/avu 1.1.2012 - 1.4.2012.xls").parse_private_to(avu)
-    AvangardReader(basedir+"home/2012/avu apr 2012.xls").parse_private_to(avu)
-    AvangardReader(basedir+"home/2012/avu may 2012.xls").parse_private_to(avu)
-    AvangardReader(basedir+"home/2012/avu june 2012.xls").parse_private_withreserved_to(avu)
-    AvangardReader(basedir+"home/2012/avu july 2012.xls").parse_private_withreserved_to(avu)
-    AvangardReader(basedir+"home/2012/avu aug 2012.xls").parse_private_withreserved_to(avu)
-    AvangardReader(basedir+"home/2012/avu sep 2012 only.xls").parse_private_withreserved_to(avu)
+
+    #AvangardReader(basedir+"home/2012/avu 1.1.2012 - 1.4.2012.xls").parse_private_to(avu)
+    #AvangardReader(basedir+"home/2012/avu apr 2012.xls").parse_private_to(avu)
+    #AvangardReader(basedir+"home/2012/avu may 2012.xls").parse_private_to(avu)
+    #AvangardReader(basedir+"home/2012/avu june 2012.xls").parse_private_withreserved_to(avu)
+    #AvangardReader(basedir+"home/2012/avu july 2012.xls").parse_private_withreserved_to(avu)
+    #AvangardReader(basedir+"home/2012/avu aug 2012.xls").parse_private_withreserved_to(avu)
+    #AvangardReader(basedir+"home/2012/avu sep 2012 only.xls").parse_private_withreserved_to(avu)
     AvangardReader(basedir+"home/2013/avu jan-mar 2013.xls").parse_private_withreserved_to(avu)
     AvangardReader(basedir+"home/2013/avu apr 2013.xls").parse_private_withreserved_to(avu)
-    #AvangardReader(basedir+"home/2013/avu may 2013.xls").parse_private_withreserved_to(avu)
 
 
-    AvangardReader(basedir+"home/2012/avs sep 2012 only.xls").parse_private_withreserved_to(avs)
+
+    #AvangardReader(basedir+"home/2012/avs sep 2012 only.xls").parse_private_withreserved_to(avs)
     AvangardReader(basedir+"home/2013/avs jan-mar 2013.xls").parse_private_withreserved_to(avs)
     AvangardReader(basedir+"home/2013/avs apr 2013.xls").parse_private_withreserved_to(avs)
 
-    TCSBankReader(basedir+"home/2012/tcs jan 2012new.csv").parse2012_to(tcs)
-    TCSBankReader(basedir+"home/2012/tcs feb-apr 2012new.csv").parse2012_to(tcs)
-    TCSBankReader(basedir+"home/2012/tcs may 2012.csv").parse2012_to(tcs)
-    TCSBankReader(basedir+"home/2012/tcs june 2012.csv").parse2012_to(tcs)
-    TCSBankReader(basedir+"home/2012/tcs july 2012.csv").parse2012_to(tcs)
-    TCSBankReader(basedir+"home/2012/tcs aug 2012.csv").parse2012_to(tcs)
-    #TCSBankReader(basedir+"home/2012/tcs sep 2012.csv").parse2012b_to(tcs)
-    TCSBankReader(basedir+"home/2012/tcs sep 2012 only.csv").parse2012b_to(tcs)
+    #TCSBankReader(basedir+"home/2012/tcs jan 2012new.csv").parse2012_to(tcs)
+    #TCSBankReader(basedir+"home/2012/tcs feb-apr 2012new.csv").parse2012_to(tcs)
+    #TCSBankReader(basedir+"home/2012/tcs may 2012.csv").parse2012_to(tcs)
+    #TCSBankReader(basedir+"home/2012/tcs june 2012.csv").parse2012_to(tcs)
+    #TCSBankReader(basedir+"home/2012/tcs july 2012.csv").parse2012_to(tcs)
+    #TCSBankReader(basedir+"home/2012/tcs aug 2012.csv").parse2012_to(tcs)
+    #TCSBankReader(basedir+"home/2012/tcs sep 2012 only.csv").parse2012b_to(tcs)
 
     TCSBankReader(basedir+"home/2013/tcs jan-mar 2013.csv").parse2012b_to(tcs)
     TCSBankReader(basedir+"home/2013/tcs apr 2013.csv").parse2012b_to(tcs)
 
-    #TCSBankReader("Data/home/2012/tcs june 2012b.csv").parse2011v2_to(tcs)
 
     cashconfig={'first_row':1,'col_acc':1,'col_date':0, 'col_op':2,'col_in':3,'col_out':4,'col_balance':5, 'col_tag1':6,'col_tag2':7}
-    XlsReader(basedir+'home/2012/2012 logs and cash.xls','Cash ops',cashconfig).parse_to([wallet,safe, sveta])
+    XlsReader(basedir+'home/2013/2013 logs and cash.xls','Cash ops',cashconfig).parse_to([wallet,safe, sveta])
 
 
 
@@ -142,13 +140,13 @@ def parsing(basedir,avr,avu,avs,tcs,boa,wallet,safe, sveta, budget):
     accstoread={avr:1, avu:2, tcs:3, wallet:4, safe:5, sveta:6}
     #accstoread={avu:2}
 
-    XlsLeftoversJournalReader(basedir+'home/2012/2012 logs and cash.xls','Account Log',cashconfig).parse_to(accstoread)
+    XlsLeftoversJournalReader(basedir+'home/2013/2013 logs and cash.xls','Account Log',cashconfig).parse_to(accstoread)
 
-    budget.read(basedir+'home/2012/2012 logs and cash.xls','Budget')
-    budget.read(basedir+'home/2012/2012 sveta.xlsx','Plan')
+    budget.read(basedir+'home/2013/2013 logs and cash.xls','Budget')
+    budget.read(basedir+'home/2013/2013 sveta.xlsx','Plan')
 
-    budget.read_executions(basedir+'home/2012/2012 logs and cash.xls','Budget-Execution')
-    budget.read_executions(basedir+'home/2012/2012 sveta.xlsx','Budget-Execution')
+    budget.read_executions(basedir+'home/2013/2013 logs and cash.xls','Budget-Execution')
+    budget.read_executions(basedir+'home/2013/2013 sveta.xlsx','Budget-Execution')
 #FP=None
 def tagging(basedir,familypool=None):
     print "Tagging"
@@ -189,8 +187,8 @@ def tagging(basedir,familypool=None):
     tagger.handler(tx_to_outer_bank)
 
 
-    tagger.load_declares(basedir+"home/2012/2012 logs and cash.xls","Auto Tags")
-    tagger.load_manual_tags(basedir+"home/2012/2012 logs and cash.xls","Manual Tags")
+    tagger.load_declares(basedir+"home/2013/2013 logs and cash.xls","Auto Tags")
+    tagger.load_manual_tags(basedir+"home/2013/2013 logs and cash.xls","Manual Tags")
 
 
 
@@ -200,51 +198,51 @@ def tagging(basedir,familypool=None):
     #cProfile.runctx('tagger.dotagforpool(familypool)', globals(),locals())
 
 
-    TransisitionsLoader(familypool, basedir+"home/2012/2012 logs and cash.xls","Transitions")
+    TransisitionsLoader(familypool, basedir+"home/2013/2013 logs and cash.xls","Transitions")
 
 
 
     #feb
-    familypool.get_tx_byid("12351837avr13682.00").set_logical_date(datetime(2012,2,28))
-    familypool.get_tx_byid("123600wallet16318.00").set_logical_date(datetime(2012,2,29))
+    #familypool.get_tx_byid("12351837avr13682.00").set_logical_date(datetime(2012,2,28))
+    #familypool.get_tx_byid("123600wallet16318.00").set_logical_date(datetime(2012,2,29))
     #mar
 
 
-    familypool.get_tx_byid("123201413avr22000.00").slice(u"В транзакции по зарплате только 20К",2000,["Reimbursment"],[u"Зарплата"])
-    familypool.get_tx_byid("124500wallet31000.00").set_logical_date(datetime(2012,3,30))
-    familypool.get_tx_byid("124500wallet15018.00").set_logical_date(datetime(2012,3,30))
+    #familypool.get_tx_byid("123201413avr22000.00").slice(u"В транзакции по зарплате только 20К",2000,["Reimbursment"],[u"Зарплата"])
+    #familypool.get_tx_byid("124500wallet31000.00").set_logical_date(datetime(2012,3,30))
+    #familypool.get_tx_byid("124500wallet15018.00").set_logical_date(datetime(2012,3,30))
 
 
-    familypool.get_tx_byid("123271359avr20000.00").slice(u"В транзакции по зарплате 0К, остальное на Москву",20000,["Reimbursment"],[u"Зарплата"])
+    #familypool.get_tx_byid("123271359avr20000.00").slice(u"В транзакции по зарплате 0К, остальное на Москву",20000,["Reimbursment"],[u"Зарплата"])
 
 
     #apr
-    familypool.get_tx_byid("1252113avr23682.00").set_logical_date(datetime(2012,4,30))
+    #familypool.get_tx_byid("1252113avr23682.00").set_logical_date(datetime(2012,4,30))
     #may
-    familypool.get_tx_byid("126900wallet18318.00[1]").set_logical_date(datetime(2012,5,30))
-    familypool.get_tx_byid("126900avr41864.20").set_logical_date(datetime(2012,5,30))
+    #familypool.get_tx_byid("126900wallet18318.00[1]").set_logical_date(datetime(2012,5,30))
+    #familypool.get_tx_byid("126900avr41864.20").set_logical_date(datetime(2012,5,30))
 
-    tx=familypool.get_tx_byid("127600avr41682.00").set_logical_date(datetime(2012,6,30))
+    #tx=familypool.get_tx_byid("127600avr41682.00").set_logical_date(datetime(2012,6,30))
 
-    tx=familypool.get_tx_byid("1271200wallet18318.00[1]").set_logical_date(datetime(2012,6,30))
+    #tx=familypool.get_tx_byid("1271200wallet18318.00[1]").set_logical_date(datetime(2012,6,30))
 
     #nov
 
     #familypool.get_tx_byid("1211900tcs5522.00").slice(u"Вино 6 бутылок",1834,[u"спиртное"],["food"])
-    tx=familypool.get_tx_byid("12102500sveta3700.00").set_logical_date(datetime(2012,11,1))
-    tx=familypool.get_tx_byid("12112700sveta3000.00").set_logical_date(datetime(2012,12,1))
+    #tx=familypool.get_tx_byid("12102500sveta3700.00").set_logical_date(datetime(2012,11,1))
+    #tx=familypool.get_tx_byid("12112700sveta3000.00").set_logical_date(datetime(2012,12,1))
 
 
-    familypool.get_tx_byid("1211200avr25375.00").set_logical_date(datetime(2012,10,30))
+    #familypool.get_tx_byid("1211200avr25375.00").set_logical_date(datetime(2012,10,30))
 
-    familypool.get_tx_byid("128100avr23865.00").set_logical_date(datetime(2012,7,30))
-    familypool.get_tx_byid("1282120wallet36318.00[1]").set_logical_date(datetime(2012,7,30))
+    #familypool.get_tx_byid("128100avr23865.00").set_logical_date(datetime(2012,7,30))
+    #familypool.get_tx_byid("1282120wallet36318.00[1]").set_logical_date(datetime(2012,7,30))
 
     #familypool.get_tx_byid("12111200wallet44625.00[1]").set_logical_date(datetime(2012,10,30))
 
 
     #familypool.get_tx_byid("1211900tcs5522.00").slice(u"Вино 6 бутылок",1834,[u"спиртное"],["food"])
-    load_slices(familypool,basedir+"home/2012/2012 logs and cash.xls","Slices")
+    load_slices(familypool,basedir+"home/2013/2013 logs and cash.xls","Slices")
 def load_slices(pool,filename,sheetname):
 
     book = xlrd.open_workbook(filename)
@@ -378,7 +376,10 @@ def homeaccounting(basedir):
 
     bigpict_cahsflow_checkpoints=[]
     #bigpict_cahsflow_checkpoints.append( (datetime(2012,11,30), -(222425.35+39002)) )
-    bigpict_cahsflow_checkpoints.append( (datetime(2012,11,30), 0) )
+    #bigpict_cahsflow_checkpoints.append( (datetime(2012,11,30), 0) )
+
+    bigpict_cahsflow_checkpoints.append( (datetime(2013,2,1), 0) )
+
 
     bigpict_period=CalendarHelper.Period(datetime(2012,11,1),datetime(2014,1,1))
     bigpicttable=bigpicture.new_big_picture(clasfctn,statement,budgetstatement, budgetf,bigpict_cahsflow_checkpoints, bigpict_period)
@@ -438,15 +439,15 @@ def relationshipwithcompany(statement,wb,debts):
 
     checkpoints=[]
 
-    checkpoints.append([datetime(2012,2,22),-30454.64,False])
-    checkpoints.append([datetime(2012,3,21),5407.42,False])
-    checkpoints.append([datetime(2012,5,5),228423.96,False])
-    checkpoints.append([datetime(2012,5,5),228423.96,False])
-    checkpoints.append([datetime(2012,6,8),85318.81,False])
-    checkpoints.append([datetime(2012,7,9, 17,0,0),67205.08,False])
-    checkpoints.append([datetime(2012,7,21, 16,0,0),233207.07,False])
-    checkpoints.append([datetime(2012,10,1,17),222878, False])
-    checkpoints.append([datetime(2012,11,6,16),114975, False]) #Москва ноябрь 2 доп расходы
+    #checkpoints.append([datetime(2012,2,22),-30454.64,False])
+    #checkpoints.append([datetime(2012,3,21),5407.42,False])
+    #checkpoints.append([datetime(2012,5,5),228423.96,False])
+    #checkpoints.append([datetime(2012,5,5),228423.96,False])
+    #checkpoints.append([datetime(2012,6,8),85318.81,False])
+    #checkpoints.append([datetime(2012,7,9, 17,0,0),67205.08,False])
+    #checkpoints.append([datetime(2012,7,21, 16,0,0),233207.07,False])
+    #checkpoints.append([datetime(2012,10,1,17),222878, False])
+    #checkpoints.append([datetime(2012,11,6,16),114975, False]) #Москва ноябрь 2 доп расходы
 
     checkpoints.append([datetime(2012,11,24,17),117097, False])
 
@@ -613,7 +614,7 @@ def details_for_cat(ws,category, rowi, date_start, date_finish):
     rowi+=1
     return rowi,subtotal
 def load_and_organize_classfication(basedir,statement, collapse_company_txs):
-    classification=Classification(from_xls=(basedir+"home/2012/2012 logs and cash.xls","Classification"))
+    classification=Classification(from_xls=(basedir+"home/2013/2013 logs and cash.xls","Classification"))
 
 
     #создаем категории для тегов, которые не попали созданные вручную категории
