@@ -219,6 +219,7 @@ class AvangardReader:
             is_credit=(siscredit!=0.0)
 
 
+        #баланс в конце
         headrow=sheet.row(4)
         headrow2=sheet.row(8)
         headrow3=sheet.row(9)
@@ -226,6 +227,9 @@ class AvangardReader:
             number=headrow[columdind].value+headrow2[columdind].value
         else:
             number=headrow3[columdind].value
+            #if not isinstance(number,float):
+            #    headrow3b=sheet.row(2)
+            #    number=headrow3b[29].value
 
         if isinstance(number,float):
             self.make_leftover(acc,book,sheet,number,report_date_finish)

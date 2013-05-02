@@ -77,7 +77,7 @@ def loadrates():
 
     Currency.addrate(datetime(2012, 10, 10),usd, cny,0.1596)
 
-
+    Currency.addrate(datetime(2013, 5, 2),rub, usd,31.04)
 
 def svetaaccounting(basedir,acc):
     #tcs = Account('scash',rub)
@@ -96,7 +96,12 @@ def parsing(basedir,avr,avu,avs,tcs,boa,wallet,safe, sveta, budget):
     AvangardReader(basedir+"home/2012/avr june 2012.xls").parse_private_withreserved_to(avr)
     AvangardReader(basedir+"home/2012/avr july 2012.xls").parse_private_withreserved_to(avr)
     AvangardReader(basedir+"home/2012/avr aug 2012.xls").parse_private_withreserved_to(avr)
-    AvangardReader(basedir+"home/2012/avr sep 2012.xls").parse_private_withreserved_to(avr)
+    AvangardReader(basedir+"home/2012/avr sep 2012 only.xls").parse_private_withreserved_to(avr)
+
+
+    AvangardReader(basedir+"home/2013/avr jan-mar 2013.xls").parse_private_withreserved_to(avr)
+    AvangardReader(basedir+"home/2013/avr apr 2013.xls").parse_private_withreserved_to(avr)
+    #AvangardReader(basedir+"home/2013/avr may 2013.xls").parse_private_withreserved_to(avr)
 
     AvangardReader(basedir+"home/2012/avu 1.1.2012 - 1.4.2012.xls").parse_private_to(avu)
     AvangardReader(basedir+"home/2012/avu apr 2012.xls").parse_private_to(avu)
@@ -104,11 +109,15 @@ def parsing(basedir,avr,avu,avs,tcs,boa,wallet,safe, sveta, budget):
     AvangardReader(basedir+"home/2012/avu june 2012.xls").parse_private_withreserved_to(avu)
     AvangardReader(basedir+"home/2012/avu july 2012.xls").parse_private_withreserved_to(avu)
     AvangardReader(basedir+"home/2012/avu aug 2012.xls").parse_private_withreserved_to(avu)
-    AvangardReader(basedir+"home/2012/avu sep 2012.xls").parse_private_withreserved_to(avu)
+    AvangardReader(basedir+"home/2012/avu sep 2012 only.xls").parse_private_withreserved_to(avu)
+    AvangardReader(basedir+"home/2013/avu jan-mar 2013.xls").parse_private_withreserved_to(avu)
+    AvangardReader(basedir+"home/2013/avu apr 2013.xls").parse_private_withreserved_to(avu)
+    #AvangardReader(basedir+"home/2013/avu may 2013.xls").parse_private_withreserved_to(avu)
 
 
-    AvangardReader(basedir+"home/2012/avs sep 2012.xls").parse_private_withreserved_to(avs)
-
+    AvangardReader(basedir+"home/2012/avs sep 2012 only.xls").parse_private_withreserved_to(avs)
+    AvangardReader(basedir+"home/2013/avs jan-mar 2013.xls").parse_private_withreserved_to(avs)
+    AvangardReader(basedir+"home/2013/avs apr 2013.xls").parse_private_withreserved_to(avs)
 
     TCSBankReader(basedir+"home/2012/tcs jan 2012new.csv").parse2012_to(tcs)
     TCSBankReader(basedir+"home/2012/tcs feb-apr 2012new.csv").parse2012_to(tcs)
@@ -116,7 +125,11 @@ def parsing(basedir,avr,avu,avs,tcs,boa,wallet,safe, sveta, budget):
     TCSBankReader(basedir+"home/2012/tcs june 2012.csv").parse2012_to(tcs)
     TCSBankReader(basedir+"home/2012/tcs july 2012.csv").parse2012_to(tcs)
     TCSBankReader(basedir+"home/2012/tcs aug 2012.csv").parse2012_to(tcs)
-    TCSBankReader(basedir+"home/2012/tcs sep 2012.csv").parse2012b_to(tcs)
+    #TCSBankReader(basedir+"home/2012/tcs sep 2012.csv").parse2012b_to(tcs)
+    TCSBankReader(basedir+"home/2012/tcs sep 2012 only.csv").parse2012b_to(tcs)
+
+    TCSBankReader(basedir+"home/2013/tcs jan-mar 2013.csv").parse2012b_to(tcs)
+    TCSBankReader(basedir+"home/2013/tcs apr 2013.csv").parse2012b_to(tcs)
 
     #TCSBankReader("Data/home/2012/tcs june 2012b.csv").parse2011v2_to(tcs)
 
@@ -245,7 +258,10 @@ def load_slices(pool,filename,sheetname):
         if isinstance(logical_date, float):
             tdate=xlrd.xldate_as_tuple(logical_date,0)
             res=datetime(tdate[0],tdate[1],tdate[2])
-            pool.get_tx_byid(txid).set_logical_date(res)
+            txobj=pool.get_tx_byid(txid)
+            if not txobj:
+                print "Tx '{0}' not found for set_logical_date '{1}'".format(txid,res)
+            txobj.set_logical_date(res)
             logicaldatecount+=1
         else:
             comment=r[2].value
@@ -433,6 +449,8 @@ def relationshipwithcompany(statement,wb,debts):
     checkpoints.append([datetime(2012,11,6,16),114975, False]) #Москва ноябрь 2 доп расходы
 
     checkpoints.append([datetime(2012,11,24,17),117097, False])
+
+    checkpoints.append([datetime(2013,04,10,16),-35427, False])
 
     table=Table("CM and Max")
 
