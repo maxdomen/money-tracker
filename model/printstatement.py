@@ -136,8 +136,7 @@ class PrintStatementToExcel2:
                 ws.write(ri, descr_col_ind, row.description,style_text_green)
 
                 accs=[trans.tx_from_obj.account.name,trans.tx_to_obj.account.name]
-                #acc_last_left[accs[0]]=row.left_acc
-                #acc_last_left[accs[1]]=row.left_acc_to
+
                 self.print_accounts_lefts(st,ws,ri,descr_col_ind,accs,False,acc_col_idx,row.cumulatives)
                 ws.write(ri, descr_col_ind+1+t, row.left_pool,self.style_money)
                 ri+=1

@@ -150,14 +150,7 @@ def parsing(basedir,avr,avu,avs,tcs,boa,wallet,safe, sveta, budget):
 #FP=None
 def tagging(basedir,familypool=None):
     print "Tagging"
-    #if not familypool:
-    #    familypool=FP
-
     tagger=AutoTagger()
-
-
-
-
 
     def max_card_trans(tx):
 
@@ -195,55 +188,9 @@ def tagging(basedir,familypool=None):
     tagger.dotagforpool(familypool)
 
 
-    #cProfile.runctx('tagger.dotagforpool(familypool)', globals(),locals())
-
-
     TransisitionsLoader(familypool, basedir+"home/2013/2013 logs and cash.xls","Transitions")
-
-
-
-    #feb
-    #familypool.get_tx_byid("12351837avr13682.00").set_logical_date(datetime(2012,2,28))
-    #familypool.get_tx_byid("123600wallet16318.00").set_logical_date(datetime(2012,2,29))
-    #mar
-
-
-    #familypool.get_tx_byid("123201413avr22000.00").slice(u"В транзакции по зарплате только 20К",2000,["Reimbursment"],[u"Зарплата"])
-    #familypool.get_tx_byid("124500wallet31000.00").set_logical_date(datetime(2012,3,30))
-    #familypool.get_tx_byid("124500wallet15018.00").set_logical_date(datetime(2012,3,30))
-
-
-    #familypool.get_tx_byid("123271359avr20000.00").slice(u"В транзакции по зарплате 0К, остальное на Москву",20000,["Reimbursment"],[u"Зарплата"])
-
-
-    #apr
-    #familypool.get_tx_byid("1252113avr23682.00").set_logical_date(datetime(2012,4,30))
-    #may
-    #familypool.get_tx_byid("126900wallet18318.00[1]").set_logical_date(datetime(2012,5,30))
-    #familypool.get_tx_byid("126900avr41864.20").set_logical_date(datetime(2012,5,30))
-
-    #tx=familypool.get_tx_byid("127600avr41682.00").set_logical_date(datetime(2012,6,30))
-
-    #tx=familypool.get_tx_byid("1271200wallet18318.00[1]").set_logical_date(datetime(2012,6,30))
-
-    #nov
-
-    #familypool.get_tx_byid("1211900tcs5522.00").slice(u"Вино 6 бутылок",1834,[u"спиртное"],["food"])
-    #tx=familypool.get_tx_byid("12102500sveta3700.00").set_logical_date(datetime(2012,11,1))
-    #tx=familypool.get_tx_byid("12112700sveta3000.00").set_logical_date(datetime(2012,12,1))
-
-
-    #familypool.get_tx_byid("1211200avr25375.00").set_logical_date(datetime(2012,10,30))
-
-    #familypool.get_tx_byid("128100avr23865.00").set_logical_date(datetime(2012,7,30))
-    #familypool.get_tx_byid("1282120wallet36318.00[1]").set_logical_date(datetime(2012,7,30))
-
-    #familypool.get_tx_byid("12111200wallet44625.00[1]").set_logical_date(datetime(2012,10,30))
-
-
-    #familypool.get_tx_byid("1211900tcs5522.00").slice(u"Вино 6 бутылок",1834,[u"спиртное"],["food"])
-    load_slices(familypool,basedir+"home/2013/2013 logs and cash.xls","Slices")
-def load_slices(pool,filename,sheetname):
+    load_slices_and_logicaldates(familypool,basedir+"home/2013/2013 logs and cash.xls","Slices")
+def load_slices_and_logicaldates(pool,filename,sheetname):
 
     book = xlrd.open_workbook(filename)
     sheet=book.sheet_by_name(sheetname)
@@ -261,9 +208,10 @@ def load_slices(pool,filename,sheetname):
                 print "Tx '{0}' not found for set_logical_date '{1}'".format(txid,res)
             txobj.set_logical_date(res)
             logicaldatecount+=1
-        else:
+
+        amount=r[3].value
+        if isinstance(amount, float):
             comment=r[2].value
-            amount=r[3].value
             tags_add=[]
             tags_remove=[]
             TagTools.ConvertStringOfTagsToList(tags_add,r[4].value)
@@ -439,15 +387,6 @@ def relationshipwithcompany(statement,wb,debts):
 
     checkpoints=[]
 
-    #checkpoints.append([datetime(2012,2,22),-30454.64,False])
-    #checkpoints.append([datetime(2012,3,21),5407.42,False])
-    #checkpoints.append([datetime(2012,5,5),228423.96,False])
-    #checkpoints.append([datetime(2012,5,5),228423.96,False])
-    #checkpoints.append([datetime(2012,6,8),85318.81,False])
-    #checkpoints.append([datetime(2012,7,9, 17,0,0),67205.08,False])
-    #checkpoints.append([datetime(2012,7,21, 16,0,0),233207.07,False])
-    #checkpoints.append([datetime(2012,10,1,17),222878, False])
-    #checkpoints.append([datetime(2012,11,6,16),114975, False]) #Москва ноябрь 2 доп расходы
 
     checkpoints.append([datetime(2012,11,24,17),117097, False])
 

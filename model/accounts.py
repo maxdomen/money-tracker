@@ -415,6 +415,7 @@ class Pool:
             slice.direction=origin.direction
             slice.comment="Slice "+slice_title+" "+origin.comment
             slice.human_date=origin.human_date
+            slice.logical_date=origin.logical_date
             slice._tags=full_slice_tags
             slices.append(slice)
 
@@ -430,6 +431,7 @@ class Pool:
         slice.account=origin.account
         slice.direction=origin.direction
         slice.human_date=origin.human_date
+        slice.logical_date=origin.logical_date
         slice.src=origin.src
         slice.comment="Reminder of "+origin.comment
         slice._tags=origin._tags
