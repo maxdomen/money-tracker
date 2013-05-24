@@ -104,6 +104,8 @@ class AvangardReader:
         keyword1=u"Проведенные по картсчету операции"
         keyword2=u"Авторизованные(зарезервированные), но еще не поступившие в банк операции"
         keyword3=u"Входящий остаток средств на картсчете / остаток задолженности"
+        keyword4=u"Сумма, доступная к использованию"
+        keyword5=u"Остаток задолженности по кредиту"
 
         cur_date=None
         #определяем начало и конец подтаблиц
@@ -212,24 +214,56 @@ class AvangardReader:
             columdind=24
 
 
-        siscredit=sheet.row(1)[columdind].value
+        #siscredit=sheet.row(1)[columdind].value
         is_credit=False
         #if len(siscredit)>0:
-        if isinstance(siscredit,float):
-            is_credit=(siscredit!=0.0)
+        #if isinstance(siscredit,float):
+        #    is_credit=(siscredit!=0.0)
 
 
         #баланс в конце
-        headrow=sheet.row(4)
-        headrow2=sheet.row(8)
-        headrow3=sheet.row(9)
+        #keyword4=u"Сумма, доступная к использованию"
+
+        #keyword5=u"Остаток задолженности по кредиту"
+        number_credit_limit=self.try_read_cell(sheet.row(1),23,29,30,u"Кредитный лимит")
+        if number_credit_limit>0:
+            is_credit=True
+        #print "number_credit_limit",number_credit_limit
+
         if is_credit:
-            number=headrow[columdind].value+headrow2[columdind].value
+            number_dolg=None
+            number_leftover=None
+            number_reserved=None
+
+
+            headrow=sheet.row(4)
+            headrow2=sheet.row(8)
+            headrow3=sheet.row(2)
+
+            #есть долг:Остаток задолженности по кредиту
+            number_dolg=self.try_read_cell(headrow,23,29,30,u"Остаток задолженности по кредиту")
+            number_reserved=self.try_read_cell(headrow2,23,29,30,u"Сумма зарезервированных средств")
+            number_leftover=self.try_read_cell(headrow3,23,29,30,u"Остаток на счете")
+
+
+            if number_dolg!=0:
+                number=number_dolg
+            else:
+                #нет долга: Остаток на счете - Сумма зарезервированных средств#-Ередитный лимит
+                number=number_leftover+number_reserved#-number_credit_limit
         else:
-            number=headrow3[columdind].value
-            #if not isinstance(number,float):
-            #    headrow3b=sheet.row(2)
-            #    number=headrow3b[29].value
+            #Сумма, доступная к использованию
+
+            if sheet.row(9)[23].value==u"Сумма, доступная к использованию":
+                number=sheet.row(9)[30].value
+            else:
+                if sheet.row(2)[23].value==u"Остаток на счете":
+                    number=sheet.row(2)[29].value
+                else:
+                    print "cell for left over not found"
+
+        #print "leftover=",number
+
 
         if isinstance(number,float):
             self.make_leftover(acc,book,sheet,number,report_date_finish)
@@ -239,6 +273,13 @@ class AvangardReader:
         if isinstance(number,float):
             self.make_leftover(acc,book,sheet,number,report_date_start)
 
+    def try_read_cell(self,row, c1,c2,c3,keystr):
+        number_credit_limit=None
+        if row[c1].value==keystr:
+            number_credit_limit=row[c2].value
+            if number_credit_limit=="":
+                number_credit_limit=row[c3].value
+        return number_credit_limit
 
     def str_to_date(self, str, add_y):
         

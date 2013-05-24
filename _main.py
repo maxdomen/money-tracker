@@ -206,7 +206,8 @@ def load_slices_and_logicaldates(pool,filename,sheetname):
             txobj=pool.get_tx_byid(txid)
             if not txobj:
                 print "Tx '{0}' not found for set_logical_date '{1}'".format(txid,res)
-            txobj.set_logical_date(res)
+            else:
+                txobj.set_logical_date(res)
             logicaldatecount+=1
 
         amount=r[3].value
