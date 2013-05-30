@@ -192,6 +192,7 @@ def tagging(basedir,familypool=None):
 
     TransisitionsLoader(familypool, basedir+"home/2013/2013 logs and cash.xls","Transitions")
     load_slices_and_logicaldates(familypool,basedir+"home/2013/2013 logs and cash.xls","Slices")
+
 def load_slices_and_logicaldates(pool,filename,sheetname):
 
     book = xlrd.open_workbook(filename)
@@ -495,8 +496,8 @@ def load_and_organize_classfication(basedir,statement, collapse_company_txs):
 
 
 
-
-homeaccounting("../money-data/")
+if __name__ == '__main__':
+    homeaccounting("../money-data/")
 
 
 #p = pstats.Stats('homeaccounting()')

@@ -1,6 +1,9 @@
 # -*- coding: utf8 -*-
+from _main import load_slices_and_logicaldates
 from common.CalendarHelper import Period, month_next_from
 from common.Classification import Classification
+from readers.StatementReader import XlsReader
+from readers.avangard import AvangardReader
 from reports.statement_monthly import classify_statement_monthly
 
 __author__ = 'Max'
@@ -121,7 +124,7 @@ def corpaccounting2013():
     d=datetime(2012,12,31)
     while d<datetime.now():
         p=month_next_from(d)
-        print p.start
+        #print p.start
         classify_statement_with_details(clasfctn,statement,wb, "Boa#"+str(p.start.month),True, p)
         d=p.end
 
@@ -134,6 +137,47 @@ def corpaccounting2013():
     excel=PrintStatementToExcel2("test_corp.xls","Txs",existing_workbook=wb)
     excel.set_period(datetime(2013,1,1),datetime.now())
     excel.do_print(statement)
+
+
+    #Авангард
+    clasfctn=Classification(from_xls=(basedir+"2013 corp logs and cash.xls","Classification"))
+    clasfctn.finalize()
+
+    avr = Account('avr',rub)
+    cashr = Account('cashr',rub)
+    AvangardReader(basedir+"avr corp jan-may 2013.xls").parse_corporate2013_to(avr)
+    rupool = Pool()
+    rupool.link_account(avr)
+    #rupool.get_tx_byid("1312800avr1718208.00").
+
+    load_slices_and_logicaldates(rupool,basedir+"2013 corp logs and cash.xls","Slices")
+
+    #663000
+
+    cashconfig={'first_row':1,'col_acc':1,'col_date':0, 'col_op':2,'col_in':3,'col_out':4,'col_balance':5, 'col_tag1':6,'col_tag2':7}
+    XlsReader(basedir+'2013 corp logs and cash.xls','Cash ops',cashconfig).parse_to([cashr])
+
+    rupool.link_account(cashr)
+
+    tagger=AutoTagger()
+    tagger.load_declares(basedir+"2013 corp logs and cash.xls","Auto Tags Ru")
+    tagger.load_manual_tags(basedir+"2013 corp logs and cash.xls","Manual Tags Ru")
+    tagger.dotagforpool(rupool)
+    ru_statement=rupool.make_statement(rub)
+    excel=PrintStatementToExcel2("test_corp.xls","TxsRu",existing_workbook=wb)
+    excel.set_period(datetime(2013,1,1),datetime.now())
+    excel.do_print(ru_statement)
+
+    classify_statement_monthly(clasfctn,ru_statement,wb, "Monthly(AVR)")
+
+
+    d=datetime(2012,12,31)
+    while d<datetime.now():
+        p=month_next_from(d)
+        #print p.start
+        classify_statement_with_details(clasfctn,ru_statement,wb, "Avr#"+str(p.start.month),True, p)
+        d=p.end
+
     wb.save("test_corp.xls")
     return
 if __name__ == '__main__':

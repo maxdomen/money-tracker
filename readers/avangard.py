@@ -94,6 +94,41 @@ class AvangardReader:
             src=TxSource(self.filename,"[0]",rowi,0)
             self.addrec(acc,amount,income,date,opdescr+" "+destination,destination,"","",src, "")
 
+    def parse_corporate2013_to(self, acc):
+        print "  parse",self.filename
+        book = xlrd.open_workbook(self.filename)
+        sheet=book.sheet_by_index(0)
+        #$r=sheet.row(7)
+
+
+        for rowi in range(10, sheet.nrows):
+
+            r=sheet.row(rowi)
+            xlsdate=r[2].value
+
+            if not isinstance(xlsdate, float):
+                continue
+
+            date=self.date_from_xls(xlsdate, book)
+            docnum=r[5].value
+            destination=r[16].value.strip()
+            #print date,docnum,destination
+
+            #accnum=r[8].value
+
+            #opcode=r[24].value
+            income=False
+            samnt=r[19].value
+            if not isinstance(samnt, float):
+                samnt=r[21].value
+                income=True
+            amount=Money(samnt)
+            opdescr=r[22].value.strip()
+
+
+            #print date, docnum,accnum, samnt, opdescr, destination
+            src=TxSource(self.filename,"[0]",rowi,0)
+            self.addrec(acc,amount,income,date,opdescr+" "+destination,destination,"","",src, "")
     def parse_private_withreserved_to(self, acc):
         
         print "  parse",self.filename
