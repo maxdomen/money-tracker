@@ -81,9 +81,11 @@ class Debts:
             if lastknownr:
                 for accname, balance in lastknownr.cumulatives.items():
                     if accname=="tcs" or accname=="avu":
-                        if balance>0:
-                            balance=0
+
+                        #if balance>0:
+                        #    balance=0
                         balance=-1*balance
+                        print accname,p._start,balance
                         debtxs.append(DebtTx(accname,lastknownr.date,balance=balance))
 
 
@@ -151,7 +153,7 @@ class Debts:
         for p in self.periods:
             #if  not (p._end<debts_due_to_date):
             #    break
-
+            #print p._start
             if p._start<period.start or p._end>period.end:
                 continue
 

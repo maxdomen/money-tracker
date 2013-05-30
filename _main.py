@@ -16,6 +16,8 @@ from model.dashboard import DashboardDataset, DashboardPublisher
 import model.debt
 #from model.aggregatereport import Layout, Dataset, Publisher, Aggregate, Publisher2
 #from debt import Debts
+from reports.statement_monthly import classify_statement_monthly
+from reports.statement_with_details import classify_statement_with_details
 
 __author__ = 'Max'
 
@@ -334,7 +336,7 @@ def homeaccounting(basedir):
     bigpicttable=bigpicture.new_big_picture(clasfctn,statement,budgetstatement, budgetf,bigpict_cahsflow_checkpoints, bigpict_period)
 
 
-    classify_statement(clasfctn,statement,wb, "Monthly")
+    classify_statement_monthly(clasfctn,statement,wb, "Monthly")
     relationshipwithcompany(statement,wb,debts)
 
     debts_due_to_date=datetime.now()+timedelta(days=31)
@@ -357,7 +359,7 @@ def homeaccounting(basedir):
 
 
     clasfctn=load_and_organize_classfication(basedir,statement, True)
-    classify_statement(clasfctn,budgetstatement,wb, "BudgetMonthly")
+    classify_statement_monthly(clasfctn,budgetstatement,wb, "BudgetMonthly")
 
     wb2 = xlwt.Workbook()
 
@@ -467,92 +469,11 @@ def print_checkpoint(table,rowi,cp):
 
 
 
-def classify_statement_with_details(clasfctn,statement,wb, sheetname2, collapse_company_txs, p):
-    for r in statement.Rows:
-        if r.type!=RowType.Tx:
-            continue
 
 
-        #dt=r.get_logical_date()
-        dt=r.get_human_or_logical_date()
 
 
-        if not (dt>=p.start and dt<=p.end):
-            continue
 
-        g=clasfctn.match_tags_to_category(r.normilized_tags)
-
-        if not hasattr(g, 'txs'):
-            g.txs=[]
-        g.txs.append(r)
-
-
-    ws = wb.add_sheet(sheetname2)
-    ws.normal_magn=70
-    ws.col(1).width=256*12
-    ws.col(2).width=256*12
-    ws.col(7).width=256*12
-
-    #rowi=0
-
-
-    details_for_cat(ws,clasfctn._root,0, p.start, p.end)
-
-
-def build_category_path(category):
-    cattitle=category.title
-    p=category.parent
-    while p:
-        if p.title=="_root":
-            break
-        cattitle=p.title+"/"+cattitle
-        p=p.parent
-    return cattitle
-def details_for_cat(ws,category, rowi, date_start, date_finish):
-
-    bc=0
-    style_time1 = xlwt.easyxf(num_format_str='D-MMM')
-    style_money=xlwt.easyxf(num_format_str='#,##0.00')
-    cattitle=build_category_path(category)
-    ws.write(rowi, 0, cattitle)
-    rowi+=1
-
-    subtotal=0
-    if hasattr(category, 'txs'):
-        for r in category.txs:
-            #dt=r.get_logical_date()
-
-            dt=r.get_human_or_logical_date()
-            if not (dt>=date_start and dt<=date_finish):
-                continue
-
-            #print "   ",r.date,r.tx.direction, r.amount, r.description,"->", category.title
-            ws.write(rowi, bc+0, dt,style_time1)
-            if r.tx.direction==1:
-                acoli=bc+2
-            else:
-                acoli=bc+1
-            v=r.amount.as_float()
-            subtotal+=v*r.tx.direction
-            ws.write(rowi, acoli,v ,style_money)
-            ws.write(rowi, bc+3, r.description)
-            satags=TagTools.TagsToStr(r.tx._tags)
-            if len(satags)<1:
-                satags="<notags>"
-            ws.write(rowi, bc+7,satags )
-            ws.write(rowi, bc+9,r.tx._txid )
-            rowi+=1
-
-    for c in category.childs:
-        rowi, childtotal=details_for_cat(ws,c, rowi,date_start, date_finish)
-        rowi+=1
-        subtotal+=childtotal
-
-    ws.write(rowi, 3, u"Total in {0}".format(category.title))
-    ws.write(rowi, 7,subtotal ,style_money)
-
-    rowi+=1
-    return rowi,subtotal
 def load_and_organize_classfication(basedir,statement, collapse_company_txs):
     classification=Classification(from_xls=(basedir+"home/2013/2013 logs and cash.xls","Classification"))
 
@@ -571,22 +492,7 @@ def load_and_organize_classfication(basedir,statement, collapse_company_txs):
 
     classification.finalize()
     return classification
-def classify_statement(classification,statement,wb, sheetname):
 
-
-
-    monthlydataset=ClassificationDataset(classification,Period.Month, statement)
-
-    ws = wb.add_sheet(sheetname)
-    ws.col(0).width=256*40
-    ws.panes_frozen = True
-    ws.horz_split_pos = 2
-    ws.vert_split_pos = 1
-    ws.normal_magn=70
-
-
-    printer=ClassificationPrinter(monthlydataset, existing_sheet=ws)
-    return classification
 
 
 

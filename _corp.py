@@ -1,4 +1,17 @@
+# -*- coding: utf8 -*-
+from common.CalendarHelper import Period, month_next_from
+from common.Classification import Classification
+from reports.statement_monthly import classify_statement_monthly
+
 __author__ = 'Max'
+from readers.bankofamerica import BankOfAmericaReader
+from model.accounts import *
+import xlwt
+from model.printstatement import PrintStatementToExcel2
+from model.tags import AutoTagger
+from reports.statement_with_details import classify_statement_with_details
+
+
 def corpaccounting():
     loadrates()
 
@@ -78,3 +91,51 @@ def corpaccounting():
     excel.save()
 
     return
+
+def corpaccounting2013():
+
+    boa = Account('boa',usd)
+
+    cmpool = Pool()
+    cmpool.link_account(boa)
+
+    basedir="../money-data/corp/2013/"
+    BankOfAmericaReader(basedir+'boa jan-may 2013.csv').parse_to(boa)
+
+
+    print "Tagging"
+    tagger=AutoTagger()
+    tagger.load_declares(basedir+"2013 corp logs and cash.xls","Auto Tags")
+    tagger.load_manual_tags(basedir+"2013 corp logs and cash.xls","Manual Tags")
+    tagger.dotagforpool(cmpool)
+
+
+    #statement по всем счетам
+    print "Generate statement"
+    clasfctn=Classification(from_xls=(basedir+"2013 corp logs and cash.xls","Classification"))
+    clasfctn.finalize()
+
+    wb = xlwt.Workbook()
+    statement=cmpool.make_statement(usd)
+
+    d=datetime(2012,12,31)
+    while d<datetime.now():
+        p=month_next_from(d)
+        print p.start
+        classify_statement_with_details(clasfctn,statement,wb, "Boa#"+str(p.start.month),True, p)
+        d=p.end
+
+
+    classify_statement_monthly(clasfctn,statement,wb, "Monthly(BoA)")
+
+
+
+
+    excel=PrintStatementToExcel2("test_corp.xls","Txs",existing_workbook=wb)
+    excel.set_period(datetime(2013,1,1),datetime.now())
+    excel.do_print(statement)
+    wb.save("test_corp.xls")
+    return
+if __name__ == '__main__':
+    corpaccounting2013()
+

@@ -7,6 +7,9 @@ class Period:
         self.end=e
 def month_next():
     now=datetime.now()
+    return month_next_from(now)
+
+def month_next_from(now):
     if now.month<12:
         s=datetime(now.year, now.month+1,1)
     else:

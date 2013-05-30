@@ -18,7 +18,7 @@ class BankOfAmericaReader:
         #print u"Add Tx: {0} {1} {2}".format(stime, amount,op)
 
         ptime=stime.split("/")
-        #print ptime
+        #print seci
         time=datetime(int(ptime[2]),int(ptime[0]),int(ptime[1]),0,0,seci)
         time2=datetime(int(ptime[2]),int(ptime[0]),int(ptime[1]), 0,0,seci+1)
 
@@ -76,6 +76,8 @@ class BankOfAmericaReader:
                 src=TxSource(self.filename,"[0]",row,0)
                 self.addrec(acc,amnt,time,row[1],row[3],src,seci)
                 seci+=2
+                if seci>59:
+                    seci=0
 
         #сохряняем только последний остаток в сутках
         self.leftovers.sort(key=lambda lo: lo.time, reverse=True)

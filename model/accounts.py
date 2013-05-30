@@ -295,6 +295,20 @@ class StatementRow:
             if self.tx.human_date:
                 dt=self.tx.human_date
         return dt
+    def get_normilized_tags(self):
+        tx=self.tx
+        tags=self.tags
+
+        ltags=[]
+        for t in tags:
+            ltags.append(t.lower())
+
+        if tx.direction==1:
+            ltags.append("__in")
+
+        self.normilized_tags=ltags
+        return self.normilized_tags
+
 class Statement:
     def __init__(self):
           self.Rows = []
@@ -311,23 +325,14 @@ class Statement:
             if r.type!=RowType.Tx:
                 continue
 
-            tx=r.tx
-            tags=r.tags
 
-            ltags=[]
-            for t in tags:
-                ltags.append(t.lower())
-
-            if tx.direction==1:
-                ltags.append("__in")
-
-            r.normilized_tags=ltags
+            r.normilized_tags=r.get_normilized_tags()
 
             #dt=r.get_logical_date()
 
             dt=r.get_human_or_logical_date()
 
-            res=(dt,r.amount.as_float(),ltags)
+            res=(dt,r.amount.as_float(),r.normilized_tags)
             yield   res
 
 
