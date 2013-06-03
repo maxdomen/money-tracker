@@ -140,8 +140,6 @@ def parsing(basedir,avr,avu,avs,tcs,boa,wallet,safe, sveta, budget):
 
     cashconfig={'first_row':1,'col_date':0}
     accstoread={avr:1, avu:2, tcs:3, wallet:4, safe:5, sveta:6}
-    #accstoread={avu:2}
-
     XlsLeftoversJournalReader(basedir+'home/2013/2013 logs and cash.xls','Account Log',cashconfig).parse_to(accstoread)
 
     budget.read(basedir+'home/2013/2013 logs and cash.xls','Budget')

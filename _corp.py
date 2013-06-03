@@ -2,7 +2,7 @@
 from _main import load_slices_and_logicaldates
 from common.CalendarHelper import Period, month_next_from
 from common.Classification import Classification
-from readers.StatementReader import XlsReader
+from readers.StatementReader import XlsReader, XlsLeftoversJournalReader
 from readers.avangard import AvangardReader
 from reports.statement_monthly import classify_statement_monthly
 
@@ -144,20 +144,32 @@ def corpaccounting2013():
     clasfctn.finalize()
 
     avr = Account('avr',rub)
-    cashr = Account('cashr',rub)
+    max = Account('max',rub)
+    egor = Account('egor',rub)
+    olya = Account('olya',rub)
     AvangardReader(basedir+"avr corp jan-may 2013.xls").parse_corporate2013_to(avr)
     rupool = Pool()
     rupool.link_account(avr)
     #rupool.get_tx_byid("1312800avr1718208.00").
 
+
+    TransisitionsLoader(rupool,basedir+"2013 corp logs and cash.xls","Transitions")
     load_slices_and_logicaldates(rupool,basedir+"2013 corp logs and cash.xls","Slices")
 
     #663000
 
     cashconfig={'first_row':1,'col_acc':1,'col_date':0, 'col_op':2,'col_in':3,'col_out':4,'col_balance':5, 'col_tag1':6,'col_tag2':7}
-    XlsReader(basedir+'2013 corp logs and cash.xls','Cash ops',cashconfig).parse_to([cashr])
+    XlsReader(basedir+'2013 corp logs and cash.xls','Cash ops',cashconfig).parse_to([max, egor, olya])
 
-    rupool.link_account(cashr)
+    rupool.link_account(max)
+    rupool.link_account(egor)
+    rupool.link_account(olya)
+
+
+    cashconfig={'first_row':1,'col_date':0}
+    accstoread={avr:1, max:2, egor:3, olya:4}
+    XlsLeftoversJournalReader(basedir+'2013 corp logs and cash.xls','Account Log',cashconfig).parse_to(accstoread)
+
 
     tagger=AutoTagger()
     tagger.load_declares(basedir+"2013 corp logs and cash.xls","Auto Tags Ru")
