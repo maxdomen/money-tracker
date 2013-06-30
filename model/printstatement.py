@@ -173,6 +173,8 @@ class PrintStatementToExcel2:
             if row.type==RowType.Tx:
                 if row.tx.original_currency!=None:
                     if row.tx.original_currency!=st.currency:
+                        if row.tx.original_amount==0:
+                            raise Exception("row.tx.original_amount==0 in {0}".format(row.tx._txid))
                         rate=row.tx._amount/row.tx.original_amount
 
             

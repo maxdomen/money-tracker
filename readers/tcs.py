@@ -84,6 +84,10 @@ class TCSBankReader:
         tx.human_date=human_date
 
         tx.original_amount=Money(amount_orig)
+
+        if tx.original_amount==0:
+            return
+
         tx.original_currency=currency_orig
 
         tx.src=srcdef
@@ -184,6 +188,8 @@ class TCSBankReader:
 
             if len(amount_rub.strip())<1:
                 amount_rub=amount_orig
+            #if amount_rub==0:
+            #   continue
             self.addrec_2012(acc,date_of_draw, amount_rub,amount_orig, currency_orig , desc, srcdef,date_of_operation)
 
 

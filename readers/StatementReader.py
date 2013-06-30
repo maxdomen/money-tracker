@@ -241,7 +241,7 @@ class XlsReader:
 
 
             xlsdate=r[self.config['col_date']].value
-            if len(str(xlsdate))<1:
+            if len(str(xlsdate).strip())<1:
                 xlsdate=prevxlsdate
             else:
                 tdate=xlrd.xldate_as_tuple(xlsdate,0)

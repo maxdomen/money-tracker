@@ -382,6 +382,8 @@ class Pool:
     def link_account(self, acc):
         self._Accounts.append(acc)
     def add_transition(self, tfrom, tto, commission=None,comission2=None):
+        if tfrom==tto:
+            raise Exception("wrong transition. to=from {0}={1}".format(tfrom, tto))
         trans=Transition(tfrom,tto, commission,comission2)
         self.Transitions.append(trans)
     def _checkmatch(self, tx, tags):

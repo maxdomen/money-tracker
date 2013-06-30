@@ -147,6 +147,8 @@ def corpaccounting2013():
     max = Account('max',rub)
     egor = Account('egor',rub)
     olya = Account('olya',rub)
+    natasha = Account('natasha',rub)
+    egordebt = Account('egordebt',rub)
     AvangardReader(basedir+"avr corp jan-may 2013.xls").parse_corporate2013_to(avr)
     rupool = Pool()
     rupool.link_account(avr)
@@ -159,15 +161,17 @@ def corpaccounting2013():
     #663000
 
     cashconfig={'first_row':1,'col_acc':1,'col_date':0, 'col_op':2,'col_in':3,'col_out':4,'col_balance':5, 'col_tag1':6,'col_tag2':7}
-    XlsReader(basedir+'2013 corp logs and cash.xls','Cash ops',cashconfig).parse_to([max, egor, olya])
+    XlsReader(basedir+'2013 corp logs and cash.xls','Cash ops',cashconfig).parse_to([max, egor, olya, natasha,egordebt])
 
     rupool.link_account(max)
     rupool.link_account(egor)
     rupool.link_account(olya)
+    rupool.link_account(natasha)
+    rupool.link_account(egordebt)
 
 
     cashconfig={'first_row':1,'col_date':0}
-    accstoread={avr:1, max:2, egor:3, olya:4}
+    accstoread={avr:1, max:2, egor:3, olya:4, natasha:5}
     XlsLeftoversJournalReader(basedir+'2013 corp logs and cash.xls','Account Log',cashconfig).parse_to(accstoread)
 
 
